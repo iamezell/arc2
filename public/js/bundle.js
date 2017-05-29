@@ -3069,43 +3069,113 @@ var scene = void 0;
 var camera = void 0;
 var renderer = void 0;
 var cube = void 0;
+var playerData = void 0;
+var player = void 0;
+var objects = [];
+var otherPlayers = [];
+var otherPlayersId = [];
 
 function test() {
-  var myApp = new _Main2.default();
-  var socket = io.connect('http://localhost:3000');
-  socket.on('connect', function (data) {
-    socket.emit('join', 'Hello World from client');
-  });
+    var socket = io.connect('http://10.0.0.197:3000');
+
+    socket.on('connect', function (data) {
+        socket.emit('join', 'Hello World from client');
+    });
+
+    socket.on('messages', function (data) {
+        console.log(data);
+    });
+
+    socket.on('createPlayer', function (data) {
+        console.log('creating player!', data);
+        createPlayer(data);
+    });
+
+    socket.on('addOtherPlayer', function (data) {
+        console.log('adding another player', data);
+        addOtherPlayer(data);
+    });
 }
+
 function init() {
-  scene = new _three.Scene();
-  camera = new _three.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
+    scene = new _three.Scene();
+    camera = new _three.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
 
-  renderer = new _three.WebGLRenderer();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
+    renderer = new _three.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-  var geometry = new _three.BoxGeometry(1, 1, 1);
-  var material = new _three.MeshBasicMaterial({ color: 0x00ff00 });
-  cube = new _three.Mesh(geometry, material);
-  scene.add(cube);
+    var geometry = new _three.BoxGeometry(1, 1, 1);
+    var material = new _three.MeshBasicMaterial({ color: 0x00ff00 });
+    cube = new _three.Mesh(geometry, material);
+    scene.add(cube);
 
-  camera.position.z = 5;
+    camera.position.z = 5;
 }
+
+function createPlayer(data) {
+
+    playerData = data;
+
+    var cube_geometry = new _three.BoxGeometry(data.sizeX, data.sizeY, data.sizeZ);
+    var cube_material = new _three.MeshBasicMaterial({ color: 0x7777ff, wireframe: false });
+    player = new _three.Mesh(cube_geometry, cube_material);
+
+    player.rotation.set(0, 0, 0);
+
+    player.position.x = data.x;
+    player.position.y = data.y;
+    player.position.z = data.z;
+
+    player.playerId = data.playerId;
+    player.moveSpeed = data.speed;
+    player.turnSpeed = data.turnSpeed;
+
+    updateCameraPosition();
+
+    objects.push(player);
+    scene.add(player);
+
+    camera.lookAt(player.position);
+    console.log('player created');
+}
+
+function addOtherPlayer(data) {
+    var cube_geometry = new _three.BoxGeometry(data.sizeX, data.sizeY, data.sizeZ);
+    var cube_material = new _three.MeshBasicMaterial({ color: 0x7777ff, wireframe: false });
+    var otherPlayer = new _three.Mesh(cube_geometry, cube_material);
+
+    otherPlayer.position.x = data.x;
+    otherPlayer.position.y = data.y;
+    otherPlayer.position.z = data.z;
+
+    otherPlayersId.push(data.playerId);
+    otherPlayers.push(otherPlayer);
+    objects.push(otherPlayer);
+    scene.add(otherPlayer);
+    console.log('other player added');
+};
+
+function updateCameraPosition() {
+
+    camera.position.x = player.position.x + 6 * Math.sin(player.rotation.y);
+    camera.position.y = player.position.y + 6;
+    camera.position.z = player.position.z + 6 * Math.cos(player.rotation.y);
+};
 
 function animate() {
-  requestAnimationFrame(animate);
-  update();
-  render();
+    requestAnimationFrame(animate);
+    update();
+    render();
 }
 
 function update() {
-  cube.rotation.x += 0.1;
-  cube.rotation.y += 0.1;
+    cube.rotation.x += 0.1;
+    cube.rotation.y += 0.1;
 }
 
 function render() {
-  renderer.render(scene, camera);
+    renderer.render(scene, camera);
 }
 
 init();
