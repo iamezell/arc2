@@ -22,22 +22,40 @@ app.set('port', port);
 
 var server = http.createServer(app);
 var io = require('socket.io')(server);
+var players = []
 
 io.on('connection', function(client) {  
   console.log('Client connected...');
   const id = client.id
   const myWorld = new world()
-  console.log('this is the world', world)
   myWorld.addPlayer(id)
   const player = myWorld.playerForId(id);
   client.emit('createPlayer', player);
   client.on('join', function(data) {
-    console.log(data);
     client.emit('messages', 'Hello from server');
   });
 
-  client.broadcast.emit('addOtherPlayer', player);
-  
+  client.on('playerCreated', (data) => {
+    console.log('player created')
+  //so position player away from everyone
+  if(players.length > 0) {
+    let end = players[players.length - 1]
+    data.x += end.x + 10
+    data.y += end.y
+    data.z += end.z
+  }
+  console.log('player is at', data)
+  players.push(data)
+    client.broadcast.emit('addOtherPlayer', data);
+  })
+
+  client.on('updatePosition', function(data){
+    console.log('updating position')
+    var newData = myWorld.updatePlayerData(data);
+    client.broadcast.emit('updatePosition', newData);
+  });
+
+
 })
 /**
  * Listen on provided port, on all network interfaces.
