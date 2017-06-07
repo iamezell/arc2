@@ -1,5 +1,5 @@
 import Main from './Main'
-import {Scene, PerspectiveCamera, WebGLRenderer, BoxGeometry, MeshBasicMaterial, Mesh} from 'three';
+import {Scene, PerspectiveCamera, WebGLRenderer, BoxGeometry, MeshBasicMaterial, Mesh, PlaneGeometry} from 'three';
 let scene
 let camera
 let renderer
@@ -10,12 +10,13 @@ let objects = []
 let otherPlayers = []
 let otherPlayersId = []
 let moveSpeed = 0
-let turnSpeed = 0
+let turnSpeed = 0.01
 let keyState = {}
 let socket = {}
+let meshFloor = {}
 
 function test() {
-    socket = io.connect('http://10.0.0.197:3000');
+    socket = io.connect('http://10.234.81.25:3000');
 
     socket.on('connect', function(data) {
         socket.emit('join', 'Hello World from client');
@@ -52,13 +53,16 @@ function init(){
     // document.addEventListener('mouseout', onMouseOut, false);
     document.addEventListener('keydown', onKeyDown, false );
     document.addEventListener('keyup', onKeyUp, false );
+
     // window.addEventListener( 'resize', onWindowResize, false );
    
-    // var geometry = new BoxGeometry(1, 1, 1)
-    // var material = new MeshBasicMaterial({color: 0x00ff00})
+    var geometry = new PlaneGeometry(10, 10)
+    var material = new MeshBasicMaterial({color: 0x00ff00, wireframe: true})
     // cube = new Mesh(geometry, material)
+    meshFloor = new Mesh(geometry, material)
+    meshFloor.rotation.x += Math.PI / 2
     // scene.add(cube)
-   
+    scene.add(meshFloor)
     // camera.position.z = 5
 }
 
@@ -67,7 +71,7 @@ function createPlayer (data, socket){
     playerData = data;
 
     let cube_geometry = new BoxGeometry(data.sizeX, data.sizeY, data.sizeZ);
-    let cube_material = new MeshBasicMaterial({color: 0x7777ff, wireframe: false});
+    let cube_material = new MeshBasicMaterial({color: 0x7777ff, wireframe: true});
     player = new Mesh(cube_geometry, cube_material);
 
     player.rotation.set(0,0,0);
@@ -85,7 +89,7 @@ function createPlayer (data, socket){
     objects.push( player );
     scene.add( player );
 
-    camera.lookAt( player.position );
+    camera.lookAt( player.position )
     console.log('player created')
     socket.emit('playerCreated', data)
 }
@@ -223,7 +227,7 @@ function render(){
 
         checkKeyStates();
 
-        camera.lookAt( player.position );
+        // camera.lookAt( player.position );
     }
     //Render Scene---------------------------------------
     renderer.clear();

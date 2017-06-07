@@ -3075,12 +3075,13 @@ var objects = [];
 var otherPlayers = [];
 var otherPlayersId = [];
 var moveSpeed = 0;
-var turnSpeed = 0;
+var turnSpeed = 0.01;
 var keyState = {};
 var socket = {};
+var meshFloor = {};
 
 function test() {
-    socket = io.connect('http://10.0.0.197:3000');
+    socket = io.connect('http://10.234.81.25:3000');
 
     socket.on('connect', function (data) {
         socket.emit('join', 'Hello World from client');
@@ -3117,13 +3118,16 @@ function init() {
     // document.addEventListener('mouseout', onMouseOut, false);
     document.addEventListener('keydown', onKeyDown, false);
     document.addEventListener('keyup', onKeyUp, false);
+
     // window.addEventListener( 'resize', onWindowResize, false );
 
-    // var geometry = new BoxGeometry(1, 1, 1)
-    // var material = new MeshBasicMaterial({color: 0x00ff00})
+    var geometry = new _three.PlaneGeometry(10, 10);
+    var material = new _three.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
     // cube = new Mesh(geometry, material)
+    meshFloor = new _three.Mesh(geometry, material);
+    meshFloor.rotation.x += Math.PI / 2;
     // scene.add(cube)
-
+    scene.add(meshFloor);
     // camera.position.z = 5
 }
 
@@ -3132,7 +3136,7 @@ function createPlayer(data, socket) {
     playerData = data;
 
     var cube_geometry = new _three.BoxGeometry(data.sizeX, data.sizeY, data.sizeZ);
-    var cube_material = new _three.MeshBasicMaterial({ color: 0x7777ff, wireframe: false });
+    var cube_material = new _three.MeshBasicMaterial({ color: 0x7777ff, wireframe: true });
     player = new _three.Mesh(cube_geometry, cube_material);
 
     player.rotation.set(0, 0, 0);
@@ -3280,7 +3284,7 @@ function render() {
 
         checkKeyStates();
 
-        camera.lookAt(player.position);
+        // camera.lookAt( player.position );
     }
     //Render Scene---------------------------------------
     renderer.clear();
