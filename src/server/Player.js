@@ -2,8 +2,8 @@ class Player {
     constructor(id){
         this.playerId = id
         this.x = 1;
-        this.y = 0;
-        this.z = 1;
+        this.y = 1.8;
+        this.z = 5;
         this.r_x = 0;
         this.r_y = 0;
         this.r_z = 0;

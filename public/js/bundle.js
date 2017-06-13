@@ -3081,7 +3081,7 @@ var socket = {};
 var meshFloor = {};
 
 function test() {
-    socket = io.connect('http://10.234.81.25:3000');
+    socket = io.connect('http://172.20.10.8:3000/');
 
     socket.on('connect', function (data) {
         socket.emit('join', 'Hello World from client');
@@ -3121,14 +3121,13 @@ function init() {
 
     // window.addEventListener( 'resize', onWindowResize, false );
 
-    var geometry = new _three.PlaneGeometry(10, 10);
+    var geometry = new _three.PlaneGeometry(10, 10, 10, 10);
     var material = new _three.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
     // cube = new Mesh(geometry, material)
     meshFloor = new _three.Mesh(geometry, material);
-    meshFloor.rotation.x += Math.PI / 2;
+    meshFloor.rotation.x += Math.PI * -0.5;
     // scene.add(cube)
     scene.add(meshFloor);
-    // camera.position.z = 5
 }
 
 function createPlayer(data, socket) {
@@ -3177,9 +3176,9 @@ function addOtherPlayer(data) {
 
 function updateCameraPosition() {
 
-    camera.position.x = player.position.x + 6 * Math.sin(player.rotation.y);
-    camera.position.y = player.position.y + 6;
-    camera.position.z = player.position.z + 6 * Math.cos(player.rotation.y);
+    camera.position.x = player.position.x + 1 * Math.sin(player.rotation.y);
+    camera.position.y = player.position.y + 1;
+    camera.position.z = player.position.z + 1 * Math.cos(player.rotation.y);
 };
 
 function onKeyDown(event) {
