@@ -16,7 +16,7 @@ let socket = {}
 let meshFloor = {}
 
 function test() {
-    socket = io.connect('http://172.20.10.8:3000/');
+    socket = io.connect('http://192.168.1.4:3000/');
 
     socket.on('connect', function(data) {
         socket.emit('join', 'Hello World from client');
@@ -40,7 +40,7 @@ function test() {
 function init(){
     scene = new Scene()
     camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000)
-   
+
     renderer = new WebGLRenderer()
     renderer.setSize(window.innerWidth,window.innerHeight)
     document.body.appendChild(renderer.domElement)
@@ -55,7 +55,7 @@ function init(){
     document.addEventListener('keyup', onKeyUp, false );
 
     // window.addEventListener( 'resize', onWindowResize, false );
-   
+
     var geometry = new PlaneGeometry(10, 10, 10,10)
     var material = new MeshBasicMaterial({color: 0x00ff00, wireframe: true})
     // cube = new Mesh(geometry, material)
@@ -207,18 +207,18 @@ var updatePlayerData = function(){
 
 };
 
- 
+
 function animate(){
     requestAnimationFrame(animate)
     update()
     render()
 }
- 
+
 function update(){
     // cube.rotation.x += 0.1
     // cube.rotation.y += 0.1
 }
- 
+
 function render(){
     if ( player ){
 
@@ -232,7 +232,7 @@ function render(){
     renderer.clear();
     renderer.render( scene , camera );
 }
- 
+
 init()
 animate()
 test()
