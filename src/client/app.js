@@ -16,7 +16,7 @@ let socket = {}
 let meshFloor = {}
 
 function test() {
-    socket = io.connect('http://172.20.10.8:3000/');
+    socket = io.connect('http://10.0.0.119:3000/');
 
     socket.on('connect', function(data) {
         socket.emit('join', 'Hello World from client');
@@ -77,7 +77,7 @@ function createPlayer (data, socket){
 
     player.position.x = data.x;
     player.position.y = data.y;
-    player.position.z = data.z;
+    player.position.z = 1;
 
     player.playerId = data.playerId;
     player.moveSpeed = data.speed;
@@ -89,6 +89,7 @@ function createPlayer (data, socket){
     scene.add( player );
 
     camera.lookAt( player.position )
+
     console.log('player created')
     socket.emit('playerCreated', data)
 }
@@ -127,7 +128,6 @@ function onKeyDown( event ){
 }
 
 function onKeyUp( event ){
-
     //event = event || window.event;
 
     keyState[event.keyCode || event.which] = false;
@@ -141,6 +141,7 @@ var checkKeyStates = function(){
         console.log('using up arrow or w to move forward')
         player.position.x -= moveSpeed * Math.sin(player.rotation.y);
         player.position.z -= moveSpeed * Math.cos(player.rotation.y);
+        camera.rotation.x += 0.005
         updatePlayerData();
         socket.emit('updatePosition', playerData);
     }
@@ -149,6 +150,7 @@ var checkKeyStates = function(){
         console.log('using down arrow or s to move backward')
         player.position.x += moveSpeed * Math.sin(player.rotation.y);
         player.position.z += moveSpeed * Math.cos(player.rotation.y);
+        camera.rotation.x -= 0.005
         updatePlayerData();
         socket.emit('updatePosition', playerData);
     }
@@ -173,7 +175,7 @@ var checkKeyStates = function(){
         socket.emit('updatePosition', playerData);
     }
     if (keyState[69]) {
-        // 'e' - strage right
+        // 'e' - strafe right
         player.position.x += moveSpeed * Math.cos(player.rotation.y);
         player.position.z -= moveSpeed * Math.sin(player.rotation.y);
         updatePlayerData();
