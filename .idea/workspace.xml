@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="7cf97a04-316a-4778-b7e6-50c49bce7512" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/js/bundle.js" afterPath="$PROJECT_DIR$/public/js/bundle.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/client/app.js" afterPath="$PROJECT_DIR$/src/client/app.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/server/Player.js" afterPath="$PROJECT_DIR$/src/server/Player.js" />
-    </list>
+    <list default="true" id="7cf97a04-316a-4778-b7e6-50c49bce7512" name="Default" comment="" />
     <ignored path="arc2.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -50,7 +45,7 @@
         <entry file="file://$PROJECT_DIR$/src/client/app.js">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="90">
-              <caret line="18" column="32" selection-start-line="18" selection-start-column="32" selection-end-line="18" selection-end-column="42" />
+              <caret line="18" column="32" selection-start-line="18" selection-start-column="32" selection-end-line="18" selection-end-column="32" />
               <folding>
                 <element signature="e#0#25#0" expanded="true" />
               </folding>
@@ -274,12 +269,12 @@
       <workItem from="1497046747046" duration="6406000" />
       <workItem from="1498061665565" duration="204000" />
       <workItem from="1499079538830" duration="4176000" />
-      <workItem from="1499132981968" duration="323000" />
+      <workItem from="1499132981968" duration="361000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="41305000" />
+    <option name="totallyTimeSpent" value="41343000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -291,7 +286,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1440" height="821" extended-state="1" />
+    <frame x="0" y="23" width="1440" height="821" extended-state="0" />
     <editor active="false" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19591261" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -675,7 +670,7 @@
     <entry file="file://$PROJECT_DIR$/src/client/app.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
-          <caret line="18" column="32" selection-start-line="18" selection-start-column="32" selection-end-line="18" selection-end-column="42" />
+          <caret line="18" column="32" selection-start-line="18" selection-start-column="32" selection-end-line="18" selection-end-column="32" />
           <folding>
             <element signature="e#0#25#0" expanded="true" />
           </folding>
