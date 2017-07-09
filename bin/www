@@ -24,39 +24,35 @@ var server = http.createServer(app);
 var io = require('socket.io')(server);
 var players = []
 
-io.on('connection', function(client) {  
-  console.log('Client connected...');
-  const id = client.id
-  const myWorld = new world()
-  myWorld.addPlayer(id)
-  const player = myWorld.playerForId(id);
-  client.emit('createPlayer', player);
-  client.on('join', function(data) {
-    client.emit('messages', 'Hello from server');
-  });
+var players = [];
 
-  client.on('playerCreated', (data) => {
-    console.log('player created')
-  //so position player away from everyone
-  if(players.length > 0) {
-    let end = players[players.length - 1]
-    data.x += end.x + 10
-    data.y += end.y
-    data.z += end.z
-  }
-  console.log('player is at', data)
-  players.push(data)
-    client.broadcast.emit('addOtherPlayer', data);
-  })
+function Player (id) {
+    this.id = id;
+    this.x = 0;
+    this.y = 0;
+    this.z = 0;
+    this.entity = null;
+}
 
-  client.on('updatePosition', function(data){
-    console.log('updating position')
-    var newData = myWorld.updatePlayerData(data);
-    client.broadcast.emit('updatePosition', newData);
-  });
+io.on('connection', function(socket) {
+    socket.on ('join', function () {
+            var idNum = players.length;
+            var newPlayer = new Player (idNum);
+            players.push (newPlayer);
 
+            socket.emit ('playerData', {id: idNum, players: players});
+            socket.broadcast.emit ('playerJoined', newPlayer);
+            console.log('initializing')
+    });
 
-})
+    socket.on ('positionUpdate', function (data) {
+            players[data.id].x = data.x;
+            players[data.id].y = data.y;
+            players[data.id].z = data.z;
+
+        socket.broadcast.emit ('playerMoved', data);
+    });
+});
 /**
  * Listen on provided port, on all network interfaces.
  */
