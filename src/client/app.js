@@ -1,5 +1,7 @@
 import Main from './Main'
 import * as THREE from 'three'
+import Player from './worldobjects/Player'
+const Chance = require('chance')
 // import AbstractApplication from 'views/AbstractApplication'
 // import shaderVert from './shaders/custom.vert'
 // import shaderFrag from './shaders/custom.frag'
@@ -8,37 +10,38 @@ import * as THREE from 'three'
 export default class App {
 
   constructor () {
-    this.player = {}
+    this.thePlayer = {}
     this.players = []
     this.other = {}
     this.initialized = false
     this.socket = {}
     this.network = {}
-     this.renderer
-         this.geometry
-         this.material
-         this.mesh
-         this.light
-         this.controls
-         this.objects = [];
-         this.raycaster;
-         this.blocker = document.getElementById( 'blocker' );
-         this.instructions = document.getElementById( 'instructions' );
-         this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
-         this.scene = new THREE.Scene();
-         this.scene.background = new THREE.Color( 0xffffff );
-         this.scene.fog = new THREE.Fog( 0xffffff, 0, 750 );
-         this.havePointerLock
-         this.controlsEnabled = false
-         this.moveForward = false
-         this.moveBackward = false
-         this.moveLeft = false
-         this.moveRight = false
-         this.canJump = false
-         this.prevTime
-         this.velocity
-         this.init();
-    this.init()
+    this.renderer
+    this.geometry
+    this.material
+    this.mesh
+    this.light
+    this.controls
+    this.objects = [];
+    this.otherPlayers
+    this.raycaster;
+    this.blocker = document.getElementById( 'blocker' );
+    this.instructions = document.getElementById( 'instructions' );
+    this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color( 0xffffff );
+    this.scene.fog = new THREE.Fog( 0xffffff, 0, 750 );
+    this.havePointerLock
+    this.controlsEnabled = false
+    this.moveForward = false
+    this.moveBackward = false
+    this.moveLeft = false
+    this.moveRight = false
+    this.canJump = false
+    this.prevTime
+    this.velocity
+    this.init();
+    this.chance = new Chance()
   }
 
   init() {
@@ -51,11 +54,19 @@ export default class App {
 
     socket.on ('playerData', function (data) {
         console.log('Connected.', data);
+        // add id to player
+        self.thePlayer.id = data.id;
         self.initializePlayers (data);
+       // socket.emit('joinGroup');
     });
 
     socket.on('playerJoined', function (data) {
         self.addPlayer(data);
+    });
+
+    socket.on('otherPlayerJoined', function (data) {
+        console.log('other player joined', data)
+        self.addPlayer(data)
     });
 
     socket.on('playerMoved', function (data) {
@@ -71,13 +82,6 @@ export default class App {
         self.addOtherPlayer(data)
     })
 
-    setInterval (function () {
-        if (self.initialized) {
-            socket.emit('ping', network.id);
-            console.log('pinged as #' + network.id);
-        }
-    }, 1000);
-
     this.light = new THREE.HemisphereLight( 0xeeeeff, 0x777788, 0.75 );
     this.light.position.set( 0.5, 1, 0.75 );
     this.scene.add( this.light );
@@ -87,12 +91,9 @@ export default class App {
     console.log('this is three:', THREE)
 
     THREE.PointerLockControls = function ( camera ) {
-            
-                var scope = this;
-            
-                camera.rotation.set( 0, 0, 0 );
-            
-                var pitchObject = new THREE.Object3D();
+        var scope = this;
+        camera.rotation.set( 0, 0, 0 );
+        var pitchObject = new THREE.Object3D();
                 pitchObject.add( camera );
             
                 var yawObject = new THREE.Object3D();
@@ -270,6 +271,58 @@ export default class App {
 
   }
 
+  initializePlayers (data) {
+      let that = this  
+    // loop through all the users and creating in game objects to represent them 
+    console.log('initialized', data);
+    this.otherPlayers = data.players.filter( (item) => item.id !== 1 )
+    this.otherPlayers.forEach(function(obj) {
+        that.addPlayers(obj)
+    });
+   };
+ 
+ addPlayer (data) {
+     // add to player array
+     let cube_geometry = new THREE.BoxGeometry(5,5,5);
+     let cube_material = new THREE.MeshBasicMaterial({ color: 0x7777ff, wireframe: false})
+     this.mesh = new THREE.Mesh(cube_geometry, cube_material);
+     this.mesh.position.y = 3
+     this.scene.add(this.mesh);
+     console.log('added mesh to scene', this.mesh)
+
+ };
+
+ addPlayers (data) {
+    // add to player array
+    let player = new Player()
+    player.id = data.id;
+    let cube_geometry = new THREE.BoxGeometry(5,5,5);
+    let cube_material = new THREE.MeshBasicMaterial({ color: 0x7777ff, wireframe: false})
+    this.mesh = new THREE.Mesh(cube_geometry, cube_material);
+    this.mesh.position.y = 3
+    //give random x position
+    this.mesh.position.x = this.chance.integer({min: 1, max: 10})
+    this.scene.add(this.mesh);
+    console.log('added mesh to scene', this.mesh)
+
+};
+ 
+ movePlayer (data) {
+    // send player movement data to server
+ };
+ 
+ removePlayer (data) {
+    // kill player
+ };
+ 
+ createPlayerEntity (data) {
+     // make a new player from the data that came back from server
+     
+    // move player to position
+
+    // return the player
+ }
+
   animate () {
         window.requestAnimationFrame( this.animate.bind(this) );
         if ( this.controlsEnabled ) {
@@ -292,6 +345,7 @@ export default class App {
                 this.velocity.y = Math.max( 0, this.velocity.y );
                 canJump = true;
             }
+            
             this.controls.getObject().translateX( this.velocity.x * delta );
             this.controls.getObject().translateY( this.velocity.y * delta );
             this.controls.getObject().translateZ( this.velocity.z * delta );
@@ -302,6 +356,8 @@ export default class App {
             }
             this.prevTime = time;
         }
+
+        // update other player positions
         this.renderer.render( this.scene, this.camera );
     }
 }
