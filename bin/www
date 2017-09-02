@@ -49,9 +49,13 @@ io.on('connection', function(socket) {
 
     socket.on ('positionUpdate', function (data) {
       console.log('got player movement data', data)
-            players[data.id].x = data.x;
-            players[data.id].y = data.y;
-            players[data.id].z = data.z;
+    //   players.map((item) => {
+    //     if (item.id === data.id) {
+    //         item.x = data.x
+    //         item.y = data.y
+    //         item.z = data.z
+    //     }
+    // })
         socket.broadcast.emit ('playerMoved', data);
     });
 });

@@ -29,8 +29,8 @@ export default class App {
     this.instructions = document.getElementById( 'instructions' );
     this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color( 0xffffff );
-    this.scene.fog = new THREE.Fog( 0xffffff, 0, 750 );
+    this.scene.background = new THREE.Color( 0x000000 );
+    this.scene.fog = new THREE.Fog( 0x000000, 0, 50 );
     this.havePointerLock
     this.controlsEnabled = false
     this.moveForward = false
@@ -42,6 +42,7 @@ export default class App {
     this.velocity
     this.last = 0
     this.init();
+    this.fogIsActive = false
     this.chance = new Chance()
   }
 
@@ -84,16 +85,17 @@ export default class App {
         self.addOtherPlayer(data)
     })
 
-    this.light = new THREE.HemisphereLight( 0xeeeeff, 0x777788, 0.75 );
-    this.light.position.set( 0.5, 1, 0.75 );
-    this.scene.add( this.light );
+ // this.light = new THREE.HemisphereLight( 0x000000, 0x000000, 0 );
+    // this.light.position.set( 0.5, 1, 0.75 );
+    // this.light.groundColor = '#000000';
+    // this.scene.add( this.light );
     this.prevTime = performance.now();
     this.velocity = new THREE.Vector3();
-    let that = this
+    let that = this;
     console.log('this is three:', THREE)
 
     THREE.PointerLockControls = function ( camera ) {
-        var scope = this;
+        var scope = this
         camera.rotation.set( 0, 0, 0 );
         var pitchObject = new THREE.Object3D();
                 pitchObject.add( camera );
@@ -151,6 +153,7 @@ export default class App {
             
                 }();         
     };
+
         this.controls = new THREE.PointerLockControls( this.camera );
         this.thePlayer.controls = this.controls;
         this.scene.add( this.controls.getObject() );
@@ -187,7 +190,7 @@ export default class App {
                                 element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
                                 element.requestPointerLock();
                             }, false );
-                        } else {
+                        } else { 
                             instructions.innerHTML = 'Your browser doesn\'t seem to support Pointer Lock API';
                         }
             
@@ -197,6 +200,8 @@ export default class App {
             switch ( event.keyCode ) {
                 case 38: // up
                 case 87: // w
+                    // that.fogIsActive ? 
+                    // console.log('fog is active letting it work') :
                     that.moveForward = true;
                     break;
                 case 37: // left
@@ -310,6 +315,7 @@ export default class App {
     // add player to player aray
     this.players.push(player)
     this.scene.add(this.mesh);
+
     console.log('added mesh to scene', this.mesh)
 
 };
@@ -336,6 +342,18 @@ export default class App {
     // move player to position
 
     // return the player
+ }
+ fogToZero() {
+     console.log('fog going to zero');
+     console.log('this is the light f',  this.scene.fog.far)
+     let fogFar = this.scene.fog.far
+
+     if (this.fogIsActive && fogfar > 0) {
+        this.fogIsActive = true
+        this.scene.fog.far -= 1
+     } else {
+         this.fogIsActive = false
+     }
  }
 
   animate (now) {
@@ -371,7 +389,7 @@ export default class App {
             }
         //   console.log('emitting the player positions')
 
-          if(!this.last || now - this.last >= 100) {
+          if(!this.last || now - this.last >= 10) {
            this.last = now;
             // console.log('hello this should be every second')
            this.socket.emit('positionUpdate', {
