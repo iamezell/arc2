@@ -40,12 +40,13 @@ export default class App {
     this.canJump = false
     this.prevTime
     this.velocity
+    this.last = 0
     this.init();
     this.chance = new Chance()
   }
 
   init() {
-    let socket = io.connect('http://10.0.0.139:3000/');
+    let socket = io.connect('http://10.0.0.89:3000/');
     this.socket = socket;
     let self = this;
     socket.on('connect', function(data) {
@@ -70,6 +71,7 @@ export default class App {
     });
 
     socket.on('playerMoved', function (data) {
+      console.log('player moved', data)
         self.movePlayer(data);
     });
 
@@ -150,6 +152,7 @@ export default class App {
                 }();         
     };
         this.controls = new THREE.PointerLockControls( this.camera );
+        this.thePlayer.controls = this.controls;
         this.scene.add( this.controls.getObject() );
         this.havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
         
@@ -301,7 +304,7 @@ export default class App {
     this.mesh = new THREE.Mesh(cube_geometry, cube_material);
     this.mesh.position.y = 3
     //give random x position
-    this.mesh.position.x = this.chance.integer({min: 1, max: 10})
+    this.mesh.position.x = chance.integer({min: 1, max: 10})
     this.scene.add(this.mesh);
     console.log('added mesh to scene', this.mesh)
 
@@ -323,7 +326,7 @@ export default class App {
     // return the player
  }
 
-  animate () {
+  animate (now) {
         window.requestAnimationFrame( this.animate.bind(this) );
         if ( this.controlsEnabled ) {
             this.raycaster.ray.origin.copy( this.controls.getObject().position );
@@ -354,6 +357,18 @@ export default class App {
                 this.controls.getObject().position.y = 10;
                 this.canJump = true;
             }
+          console.log('emitting the player positions')
+
+          if(!this.last || now - this.last >= 1000) {
+           this.last = now;
+            console.log('hello this should be every second')
+           this.socket.emit('positionUpdate', {
+              id: this.thePlayer.id, 
+              x: this.controls.getObject().position.x,
+              y: this.controls.getObject().position.y,
+              z: this.controls.getObject().position.z
+            })
+          }
             this.prevTime = time;
         }
 

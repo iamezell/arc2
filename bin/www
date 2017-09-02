@@ -51,7 +51,7 @@ io.on('connection', function(socket) {
             players[data.id].x = data.x;
             players[data.id].y = data.y;
             players[data.id].z = data.z;
-
+console.log('got player movement data', data)
         socket.broadcast.emit ('playerMoved', data);
     });
 });

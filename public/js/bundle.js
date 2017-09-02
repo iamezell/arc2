@@ -6750,7 +6750,7 @@ function byteLength(b64) {
 }
 
 function toByteArray(b64) {
-  var i, l, tmp, placeHolders, arr;
+  var i, j, l, tmp, placeHolders, arr;
   var len = b64.length;
   placeHolders = placeHoldersCount(b64);
 
@@ -6761,7 +6761,7 @@ function toByteArray(b64) {
 
   var L = 0;
 
-  for (i = 0; i < l; i += 4) {
+  for (i = 0, j = 0; i < l; i += 4, j += 3) {
     tmp = revLookup[b64.charCodeAt(i)] << 18 | revLookup[b64.charCodeAt(i + 1)] << 12 | revLookup[b64.charCodeAt(i + 2)] << 6 | revLookup[b64.charCodeAt(i + 3)];
     arr[L++] = tmp >> 16 & 0xFF;
     arr[L++] = tmp >> 8 & 0xFF;
@@ -6873,12 +6873,12 @@ exports.INSPECT_MAX_BYTES = 50;
  * We detect these buggy browsers and set `Buffer.TYPED_ARRAY_SUPPORT` to `false` so they
  * get the Object implementation, which is slower but behaves correctly.
  */
-Buffer.TYPED_ARRAY_SUPPORT = global.TYPED_ARRAY_SUPPORT !== undefined ? global.TYPED_ARRAY_SUPPORT : typedArraySupport();
+Buffer.TYPED_ARRAY_SUPPORT = global.TYPED_ARRAY_SUPPORT !== undefined ? global.TYPED_ARRAY_SUPPORT : typedArraySupport
 
 /*
  * Export kMaxLength after typed array support is determined.
  */
-exports.kMaxLength = kMaxLength();
+();exports.kMaxLength = kMaxLength();
 
 function typedArraySupport() {
   try {
@@ -7812,7 +7812,8 @@ var MAX_ARGUMENTS_LENGTH = 0x1000;
 function decodeCodePointsArray(codePoints) {
   var len = codePoints.length;
   if (len <= MAX_ARGUMENTS_LENGTH) {
-    return String.fromCharCode.apply(String, codePoints); // avoid extra slice()
+    return String.fromCharCode.apply(String, codePoints // avoid extra slice()
+    );
   }
 
   // Decode in chunks to avoid "call stack size exceeded".
@@ -8440,9 +8441,9 @@ var INVALID_BASE64_RE = /[^+\/0-9A-Za-z-_]/g;
 
 function base64clean(str) {
   // Node strips out invalid characters like \n and \t from the string, base64-js does not
-  str = stringtrim(str).replace(INVALID_BASE64_RE, '');
+  str = stringtrim(str).replace(INVALID_BASE64_RE, ''
   // Node converts strings with length < 2 to ''
-  if (str.length < 2) return '';
+  );if (str.length < 2) return '';
   // Node allows for non-padded base64 strings (missing trailing ===), base64-js does not
   while (str.length % 4 !== 0) {
     str = str + '=';
@@ -8468,10 +8469,10 @@ function utf8ToBytes(string, units) {
   var bytes = [];
 
   for (var i = 0; i < length; ++i) {
-    codePoint = string.charCodeAt(i);
+    codePoint = string.charCodeAt(i
 
     // is surrogate component
-    if (codePoint > 0xD7FF && codePoint < 0xE000) {
+    );if (codePoint > 0xD7FF && codePoint < 0xE000) {
       // last char was a lead
       if (!leadSurrogate) {
         // no lead yet
@@ -8736,12 +8737,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Chance = __webpack_require__(0);
+var Chance = __webpack_require__(0
 // import AbstractApplication from 'views/AbstractApplication'
 // import shaderVert from './shaders/custom.vert'
 // import shaderFrag from './shaders/custom.frag'
 
 
+);
 var App = function () {
     function App() {
         _classCallCheck(this, App);
@@ -8776,6 +8778,7 @@ var App = function () {
         this.canJump = false;
         this.prevTime;
         this.velocity;
+        this.last = 0;
         this.init();
         this.chance = new Chance();
     }
@@ -8783,7 +8786,7 @@ var App = function () {
     _createClass(App, [{
         key: 'init',
         value: function init() {
-            var socket = io.connect('http://10.0.0.139:3000/');
+            var socket = io.connect('http://10.0.0.89:3000/');
             this.socket = socket;
             var self = this;
             socket.on('connect', function (data) {
@@ -8883,6 +8886,7 @@ var App = function () {
                 }();
             };
             this.controls = new THREE.PointerLockControls(this.camera);
+            this.thePlayer.controls = this.controls;
             this.scene.add(this.controls.getObject());
             this.havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
 
@@ -9045,7 +9049,7 @@ var App = function () {
             this.mesh = new THREE.Mesh(cube_geometry, cube_material);
             this.mesh.position.y = 3;
             //give random x position
-            this.mesh.position.x = this.chance.integer({ min: 1, max: 10 });
+            this.mesh.position.x = chance.integer({ min: 1, max: 10 });
             this.scene.add(this.mesh);
             console.log('added mesh to scene', this.mesh);
         }
@@ -9070,7 +9074,7 @@ var App = function () {
         }
     }, {
         key: 'animate',
-        value: function animate() {
+        value: function animate(now) {
             window.requestAnimationFrame(this.animate.bind(this));
             if (this.controlsEnabled) {
                 this.raycaster.ray.origin.copy(this.controls.getObject().position);
@@ -9100,6 +9104,18 @@ var App = function () {
                     this.velocity.y = 0;
                     this.controls.getObject().position.y = 10;
                     this.canJump = true;
+                }
+                console.log('emitting the player positions');
+
+                if (!this.last || now - this.last >= 2 * 1000) {
+                    this.last = now;
+                    console.log('hello this should be every second');
+                    this.socket.emit('positionUpdate', {
+                        id: this.thePlayer.id,
+                        x: this.controls.getObject().position.x,
+                        y: this.controls.getObject().position.y,
+                        z: this.controls.getObject().position.z
+                    });
                 }
                 this.prevTime = time;
             }
