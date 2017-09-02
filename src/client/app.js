@@ -46,7 +46,7 @@ export default class App {
   }
 
   init() {
-    let socket = io.connect('http://10.0.0.89:3000/');
+    let socket = io.connect('http://10.0.0.139:3000/');
     this.socket = socket;
     let self = this;
     socket.on('connect', function(data) {
@@ -305,6 +305,10 @@ export default class App {
     this.mesh.position.y = 3
     //give random x position
     this.mesh.position.x = chance.integer({min: 1, max: 10})
+    // add mesh to player
+    player.mesh = this.mesh;
+    // add player to player aray
+    this.players.push(player)
     this.scene.add(this.mesh);
     console.log('added mesh to scene', this.mesh)
 
@@ -312,6 +316,14 @@ export default class App {
  
  movePlayer (data) {
     // send player movement data to server
+    console.log('this is player data coming back from server', data)
+    this.players.map((item) => {
+        if (item.id === data.id) {
+            item.mesh.position.x = data.x
+            item.mesh.position.y = data.y
+            item.mesh.position.z = data.z
+        }
+    })
  };
  
  removePlayer (data) {
@@ -357,11 +369,11 @@ export default class App {
                 this.controls.getObject().position.y = 10;
                 this.canJump = true;
             }
-          console.log('emitting the player positions')
+        //   console.log('emitting the player positions')
 
-          if(!this.last || now - this.last >= 1000) {
+          if(!this.last || now - this.last >= 100) {
            this.last = now;
-            console.log('hello this should be every second')
+            // console.log('hello this should be every second')
            this.socket.emit('positionUpdate', {
               id: this.thePlayer.id, 
               x: this.controls.getObject().position.x,

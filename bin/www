@@ -48,10 +48,10 @@ io.on('connection', function(socket) {
 
 
     socket.on ('positionUpdate', function (data) {
+      console.log('got player movement data', data)
             players[data.id].x = data.x;
             players[data.id].y = data.y;
             players[data.id].z = data.z;
-console.log('got player movement data', data)
         socket.broadcast.emit ('playerMoved', data);
     });
 });
