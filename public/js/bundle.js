@@ -1,41 +1,41 @@
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
-/******/
+
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
-/******/
+
 /******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
+/******/ 		if(installedModules[moduleId])
 /******/ 			return installedModules[moduleId].exports;
-/******/ 		}
+
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			i: moduleId,
 /******/ 			l: false,
 /******/ 			exports: {}
 /******/ 		};
-/******/
+
 /******/ 		// Execute the module function
 /******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
+
 /******/ 		// Flag the module as loaded
 /******/ 		module.l = true;
-/******/
+
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/
-/******/
+
+
 /******/ 	// expose the modules object (__webpack_modules__)
 /******/ 	__webpack_require__.m = modules;
-/******/
+
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
-/******/
+
 /******/ 	// identity function for calling harmony imports with the correct context
 /******/ 	__webpack_require__.i = function(value) { return value; };
-/******/
+
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
@@ -46,7 +46,7 @@
 /******/ 			});
 /******/ 		}
 /******/ 	};
-/******/
+
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -55,13 +55,13 @@
 /******/ 		__webpack_require__.d(getter, 'a', getter);
 /******/ 		return getter;
 /******/ 	};
-/******/
+
 /******/ 	// Object.prototype.hasOwnProperty.call
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
+
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
-/******/
+
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = 9);
 /******/ })
@@ -75,7 +75,7 @@
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-//  Chance.js 1.0.11
+//  Chance.js 1.0.12
 //  http://chancejs.com
 //  (c) 2013 Victor Quinn
 //  Chance may be freely distributed or modified under the MIT license.
@@ -142,7 +142,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         return this;
     }
 
-    Chance.prototype.VERSION = "1.0.11";
+    Chance.prototype.VERSION = "1.0.12";
 
     // Random helper functions
     function initOptions(options, defaults) {
@@ -1251,8 +1251,25 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         return this.word({ length: options.length }) + '@' + (options.domain || this.domain());
     };
 
+    /**
+     * #Description:
+     * ===============================================
+     * Generate a random Facebook id, aka fbid.
+     *
+     * NOTE: At the moment (Sep 2017), Facebook ids are
+     * "numeric strings" of length 16.
+     * However, Facebook Graph API documentation states that
+     * "it is extremely likely to change over time".
+     * @see https://developers.facebook.com/docs/graph-api/overview/
+     *
+     * #Examples:
+     * ===============================================
+     * chance.fbid() => '1000035231661304'
+     *
+     * @return [string] facebook id
+     */
     Chance.prototype.fbid = function () {
-        return parseInt('10000' + this.natural({ max: 100000000000 }), 10);
+        return '10000' + this.string({ pool: "1234567890", length: 11 });
     };
 
     Chance.prototype.google_analytics = function () {
@@ -2034,7 +2051,64 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
     // -- End Regional
 
+    // -- Music --
+
+    Chance.prototype.note = function (options) {
+        // choices for 'notes' option:
+        // flatKey - chromatic scale with flat notes (default)
+        // sharpKey - chromatic scale with sharp notes
+        // flats - just flat notes
+        // sharps - just sharp notes
+        // naturals - just natural notes
+        // all - naturals, sharps and flats
+        options = initOptions(options, { notes: 'flatKey' });
+        var scales = {
+            naturals: ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+            flats: ['D♭', 'E♭', 'G♭', 'A♭', 'B♭'],
+            sharps: ['C♯', 'D♯', 'F♯', 'G♯', 'A♯']
+        };
+        scales.all = scales.naturals.concat(scales.flats.concat(scales.sharps));
+        scales.flatKey = scales.naturals.concat(scales.flats);
+        scales.sharpKey = scales.naturals.concat(scales.sharps);
+        return this.pickone(scales[options.notes]);
+    };
+
+    Chance.prototype.midi_note = function (options) {
+        var min = 0;
+        var max = 127;
+        options = initOptions(options, { min: min, max: max });
+        return this.integer({ min: options.min, max: options.max });
+    };
+
+    Chance.prototype.chord_quality = function (options) {
+        options = initOptions(options, { jazz: true });
+        var chord_qualities = ['maj', 'min', 'aug', 'dim'];
+        if (options.jazz) {
+            chord_qualities = ['maj7', 'min7', '7', 'sus', 'dim', 'ø'];
+        }
+        return this.pickone(chord_qualities);
+    };
+
+    Chance.prototype.chord = function (options) {
+        options = initOptions(options);
+        return this.note(options) + this.chord_quality(options);
+    };
+
+    Chance.prototype.tempo = function (options) {
+        var min = 40;
+        var max = 320;
+        options = initOptions(options, { min: min, max: max });
+        return this.integer({ min: options.min, max: options.max });
+    };
+
+    // -- End Music
+
     // -- Miscellaneous --
+
+    // Coin - Flip, flip, flipadelphia
+    Chance.prototype.coin = function (options) {
+        return this.bool() ? "heads" : "tails";
+    };
 
     // Dice - For all the board game geeks out there, myself included ;)
     function diceFn(range) {
@@ -3986,8 +4060,8 @@ rectAreaLights:{value:[],properties:{color:{},position:{},width:{},height:{}}}},
  * @author alteredq / http://alteredqualia.com/
  * @author mrdoob / http://mrdoob.com/
  * @author mikael emtinger / http://gomo.se/
- */var ShaderLib={basic:{uniforms:UniformsUtils.merge([UniformsLib.common,UniformsLib.aomap,UniformsLib.lightmap,UniformsLib.fog]),vertexShader:ShaderChunk.meshbasic_vert,fragmentShader:ShaderChunk.meshbasic_frag},lambert:{uniforms:UniformsUtils.merge([UniformsLib.common,UniformsLib.aomap,UniformsLib.lightmap,UniformsLib.emissivemap,UniformsLib.fog,UniformsLib.lights,{emissive:{value:new Color(0x000000)}}]),vertexShader:ShaderChunk.meshlambert_vert,fragmentShader:ShaderChunk.meshlambert_frag},phong:{uniforms:UniformsUtils.merge([UniformsLib.common,UniformsLib.aomap,UniformsLib.lightmap,UniformsLib.emissivemap,UniformsLib.bumpmap,UniformsLib.normalmap,UniformsLib.displacementmap,UniformsLib.gradientmap,UniformsLib.fog,UniformsLib.lights,{emissive:{value:new Color(0x000000)},specular:{value:new Color(0x111111)},shininess:{value:30}}]),vertexShader:ShaderChunk.meshphong_vert,fragmentShader:ShaderChunk.meshphong_frag},standard:{uniforms:UniformsUtils.merge([UniformsLib.common,UniformsLib.aomap,UniformsLib.lightmap,UniformsLib.emissivemap,UniformsLib.bumpmap,UniformsLib.normalmap,UniformsLib.displacementmap,UniformsLib.roughnessmap,UniformsLib.metalnessmap,UniformsLib.fog,UniformsLib.lights,{emissive:{value:new Color(0x000000)},roughness:{value:0.5},metalness:{value:0},envMapIntensity:{value:1// temporary
-}}]),vertexShader:ShaderChunk.meshphysical_vert,fragmentShader:ShaderChunk.meshphysical_frag},points:{uniforms:UniformsUtils.merge([UniformsLib.points,UniformsLib.fog]),vertexShader:ShaderChunk.points_vert,fragmentShader:ShaderChunk.points_frag},dashed:{uniforms:UniformsUtils.merge([UniformsLib.common,UniformsLib.fog,{scale:{value:1},dashSize:{value:1},totalSize:{value:2}}]),vertexShader:ShaderChunk.linedashed_vert,fragmentShader:ShaderChunk.linedashed_frag},depth:{uniforms:UniformsUtils.merge([UniformsLib.common,UniformsLib.displacementmap]),vertexShader:ShaderChunk.depth_vert,fragmentShader:ShaderChunk.depth_frag},normal:{uniforms:UniformsUtils.merge([UniformsLib.common,UniformsLib.bumpmap,UniformsLib.normalmap,UniformsLib.displacementmap,{opacity:{value:1.0}}]),vertexShader:ShaderChunk.normal_vert,fragmentShader:ShaderChunk.normal_frag},/* -------------------------------------------------------------------------
+ */var ShaderLib={basic:{uniforms:UniformsUtils.merge([UniformsLib.common,UniformsLib.aomap,UniformsLib.lightmap,UniformsLib.fog]),vertexShader:ShaderChunk.meshbasic_vert,fragmentShader:ShaderChunk.meshbasic_frag},lambert:{uniforms:UniformsUtils.merge([UniformsLib.common,UniformsLib.aomap,UniformsLib.lightmap,UniformsLib.emissivemap,UniformsLib.fog,UniformsLib.lights,{emissive:{value:new Color(0x000000)}}]),vertexShader:ShaderChunk.meshlambert_vert,fragmentShader:ShaderChunk.meshlambert_frag},phong:{uniforms:UniformsUtils.merge([UniformsLib.common,UniformsLib.aomap,UniformsLib.lightmap,UniformsLib.emissivemap,UniformsLib.bumpmap,UniformsLib.normalmap,UniformsLib.displacementmap,UniformsLib.gradientmap,UniformsLib.fog,UniformsLib.lights,{emissive:{value:new Color(0x000000)},specular:{value:new Color(0x111111)},shininess:{value:30}}]),vertexShader:ShaderChunk.meshphong_vert,fragmentShader:ShaderChunk.meshphong_frag},standard:{uniforms:UniformsUtils.merge([UniformsLib.common,UniformsLib.aomap,UniformsLib.lightmap,UniformsLib.emissivemap,UniformsLib.bumpmap,UniformsLib.normalmap,UniformsLib.displacementmap,UniformsLib.roughnessmap,UniformsLib.metalnessmap,UniformsLib.fog,UniformsLib.lights,{emissive:{value:new Color(0x000000)},roughness:{value:0.5},metalness:{value:0},envMapIntensity:{value:1}// temporary
+}]),vertexShader:ShaderChunk.meshphysical_vert,fragmentShader:ShaderChunk.meshphysical_frag},points:{uniforms:UniformsUtils.merge([UniformsLib.points,UniformsLib.fog]),vertexShader:ShaderChunk.points_vert,fragmentShader:ShaderChunk.points_frag},dashed:{uniforms:UniformsUtils.merge([UniformsLib.common,UniformsLib.fog,{scale:{value:1},dashSize:{value:1},totalSize:{value:2}}]),vertexShader:ShaderChunk.linedashed_vert,fragmentShader:ShaderChunk.linedashed_frag},depth:{uniforms:UniformsUtils.merge([UniformsLib.common,UniformsLib.displacementmap]),vertexShader:ShaderChunk.depth_vert,fragmentShader:ShaderChunk.depth_frag},normal:{uniforms:UniformsUtils.merge([UniformsLib.common,UniformsLib.bumpmap,UniformsLib.normalmap,UniformsLib.displacementmap,{opacity:{value:1.0}}]),vertexShader:ShaderChunk.normal_vert,fragmentShader:ShaderChunk.normal_frag},/* -------------------------------------------------------------------------
 	//	Cube map shader
 	 ------------------------------------------------------------------------- */cube:{uniforms:{tCube:{value:null},tFlip:{value:-1},opacity:{value:1.0}},vertexShader:ShaderChunk.cube_vert,fragmentShader:ShaderChunk.cube_frag},/* -------------------------------------------------------------------------
 	//	Cube map shader
@@ -6750,7 +6824,7 @@ function byteLength(b64) {
 }
 
 function toByteArray(b64) {
-  var i, l, tmp, placeHolders, arr;
+  var i, j, l, tmp, placeHolders, arr;
   var len = b64.length;
   placeHolders = placeHoldersCount(b64);
 
@@ -6761,7 +6835,7 @@ function toByteArray(b64) {
 
   var L = 0;
 
-  for (i = 0; i < l; i += 4) {
+  for (i = 0, j = 0; i < l; i += 4, j += 3) {
     tmp = revLookup[b64.charCodeAt(i)] << 18 | revLookup[b64.charCodeAt(i + 1)] << 12 | revLookup[b64.charCodeAt(i + 2)] << 6 | revLookup[b64.charCodeAt(i + 3)];
     arr[L++] = tmp >> 16 & 0xFF;
     arr[L++] = tmp >> 8 & 0xFF;
@@ -6842,8 +6916,8 @@ function fromByteArray(uint8) {
 
 
 var base64 = __webpack_require__(4);
-var ieee754 = __webpack_require__(7);
-var isArray = __webpack_require__(6);
+var ieee754 = __webpack_require__(6);
+var isArray = __webpack_require__(7);
 
 exports.Buffer = Buffer;
 exports.SlowBuffer = SlowBuffer;
@@ -8577,19 +8651,6 @@ function isnan(val) {
 "use strict";
 
 
-var toString = {}.toString;
-
-module.exports = Array.isArray || function (arr) {
-  return toString.call(arr) == '[object Array]';
-};
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m;
   var eLen = nBytes * 8 - mLen - 1;
@@ -8673,6 +8734,19 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
 
   buffer[offset + i - d] |= s * 128;
+};
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var toString = {}.toString;
+
+module.exports = Array.isArray || function (arr) {
+  return toString.call(arr) == '[object Array]';
 };
 
 /***/ }),
@@ -8766,7 +8840,7 @@ var App = function () {
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x000000);
-        this.scene.fog = new THREE.Fog(0x000000, 0, 50);
+        this.scene.fog = new THREE.Fog(0x000000, 0, 1000);
         this.havePointerLock;
         this.controlsEnabled = false;
         this.moveForward = false;
@@ -8785,11 +8859,17 @@ var App = function () {
     _createClass(App, [{
         key: 'init',
         value: function init() {
-            var socket = io.connect('http://10.0.0.139:3000/');
+            var socket = io.connect('http://172.17.134.121:3000');
             this.socket = socket;
             var self = this;
             socket.on('connect', function (data) {
                 socket.emit('join', 'Hello World from client');
+            });
+            console.log('this is the navigator', navigator);
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(function (stream) {
+                console.log('this is the stream', stream);
+            }).catch(function (err) {
+                console.log('we got an error: ', err);
             });
 
             socket.on('playerData', function (data) {
@@ -9098,7 +9178,7 @@ var App = function () {
 
             if (this.fogIsActive && fogfar > 0) {
                 this.fogIsActive = true;
-                this.scene.fog.far -= 1;
+                this.scene.fog.far -= 2;
             } else {
                 this.fogIsActive = false;
             }

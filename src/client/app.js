@@ -30,7 +30,7 @@ export default class App {
     this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color( 0x000000 );
-    this.scene.fog = new THREE.Fog( 0x000000, 0, 50 );
+    this.scene.fog = new THREE.Fog( 0x000000, 0, 1000 );
     this.havePointerLock
     this.controlsEnabled = false
     this.moveForward = false
@@ -47,12 +47,21 @@ export default class App {
   }
 
   init() {
-    let socket = io.connect('http://10.0.0.139:3000/');
+    let socket = io.connect('http://172.17.134.121:3000');
     this.socket = socket;
     let self = this;
     socket.on('connect', function(data) {
         socket.emit('join', 'Hello World from client');
     });
+    console.log('this is the navigator', navigator)
+    navigator.mediaDevices.getUserMedia({audio: true, video: false})
+    .then((stream)=>{
+      console.log('this is the stream', stream)
+      
+    })
+    .catch((err)=>{
+      console.log('we got an error: ', err)
+    })
 
     socket.on ('playerData', function (data) {
         console.log('Connected.', data);
@@ -350,7 +359,7 @@ export default class App {
 
      if (this.fogIsActive && fogfar > 0) {
         this.fogIsActive = true
-        this.scene.fog.far -= 1
+        this.scene.fog.far -= 2
      } else {
          this.fogIsActive = false
      }
