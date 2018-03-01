@@ -41,23 +41,33 @@ export default class App {
     this.prevTime
     this.velocity
     this.last = 0
+    this.audioContext
     this.init();
     this.fogIsActive = false
     this.chance = new Chance()
   }
 
   init() {
-    let socket = io.connect('http://172.17.134.121:3000');
+    let socket = io.connect('https://10.0.0.139');
     this.socket = socket;
     let self = this;
+    let realAudioInput = {};
+    let dest = {};
+    let recorder = {}
+    let bufferSize = 4096;
     socket.on('connect', function(data) {
         socket.emit('join', 'Hello World from client');
     });
     console.log('this is the navigator', navigator)
+    this.audioContext = new AudioContext()
     navigator.mediaDevices.getUserMedia({audio: true, video: false})
     .then((stream)=>{
       console.log('this is the stream', stream)
-      
+      realAudioInput = this.audioContext.createMediaStreamSource(stream);
+      //dest = this.audioContext.createMediaStreamDestination();
+      recorder = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
+      recorder.onaudioprocess = this.recorderProcess.bind(this);
+      recorder.connect(this.audioContext.destination);
     })
     .catch((err)=>{
       console.log('we got an error: ', err)
@@ -93,6 +103,15 @@ export default class App {
         console.log('adding another player', data)
         self.addOtherPlayer(data)
     })
+    socket.on('test', (data) => {
+        console.log('just a test to see if things are working')
+    })
+
+    socket.on('audio', (data) => {
+      console.log('got info froms server', data)
+      self.playAudio(data);
+    })
+
 
  // this.light = new THREE.HemisphereLight( 0x000000, 0x000000, 0 );
     // this.light.position.set( 0.5, 1, 0.75 );
@@ -108,66 +127,66 @@ export default class App {
         camera.rotation.set( 0, 0, 0 );
         var pitchObject = new THREE.Object3D();
                 pitchObject.add( camera );
-            
+
                 var yawObject = new THREE.Object3D();
                 yawObject.position.y = 10;
                 yawObject.add( pitchObject );
                 var PI_2 = Math.PI / 2;
-            
+
                 let onMouseMove = function ( event ) {
                     if ( scope.enabled === false ) return;
-            
+
                     var movementX = event.movementX || event.mozMovementX || event.webkitMovementX || 0;
                     var movementY = event.movementY || event.mozMovementY || event.webkitMovementY || 0;
-            
+
                     yawObject.rotation.y -= movementX * 0.002;
                     pitchObject.rotation.x -= movementY * 0.002;
-            
+
                     pitchObject.rotation.x = Math.max( - PI_2, Math.min( PI_2, pitchObject.rotation.x ) );
-            
+
                 };
-            
+
                 this.dispose = function() {
-            
+
                     document.removeEventListener( 'mousemove', onMouseMove, false );
-            
+
                 };
-            
+
                 document.addEventListener( 'mousemove', onMouseMove, false );
-            
+
                 this.enabled = false;
-            
+
                 this.getObject = function () {
-            
+
                     return yawObject;
-            
+
                 };
-            
+
                 this.getDirection = function() {
-            
+
                     // assumes the camera itself is not rotated
-            
+
                     var direction = new THREE.Vector3( 0, 0, - 1 );
                     var rotation = new THREE.Euler( 0, 0, 0, "YXZ" );
-            
+
                     return function( v ) {
-            
+
                         rotation.set( pitchObject.rotation.x, yawObject.rotation.y, 0 );
-            
+
                         v.copy( direction ).applyEuler( rotation );
-            
+
                         return v;
-            
+
                     };
-            
-                }();         
+
+                }();
     };
 
         this.controls = new THREE.PointerLockControls( this.camera );
         this.thePlayer.controls = this.controls;
         this.scene.add( this.controls.getObject() );
         this.havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
-        
+
                         if ( this.havePointerLock ) {
                             let element = document.body;
                             let pointerlockchange = function ( event ) {
@@ -199,17 +218,17 @@ export default class App {
                                 element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
                                 element.requestPointerLock();
                             }, false );
-                        } else { 
+                        } else {
                             instructions.innerHTML = 'Your browser doesn\'t seem to support Pointer Lock API';
                         }
-            
+
 
         let onKeyDown = function ( event ) {
             console.log(event.key)
             switch ( event.keyCode ) {
                 case 38: // up
                 case 87: // w
-                    // that.fogIsActive ? 
+                    // that.fogIsActive ?
                     // console.log('fog is active letting it work') :
                     that.moveForward = true;
                     break;
@@ -288,16 +307,48 @@ export default class App {
 
   }
 
+  recorderProcess(e) {
+         var left = e.inputBuffer.getChannelData(0);
+         let outputBuffer = e.outputBuffer;
+         console.log('this i sthe number od ', e.nmberOfChannels)
+         this.socket.emit('audio-blod-send', this.convertFloat32ToInt16(left));
+  }
+
+  convertFloat32ToInt16(buffer) {
+     let l = buffer.length;
+     let buf = new Int16Array(l);
+     while (l--) {
+       buf[l] = Math.min(1, buffer[l])*0x7FFF;
+     }
+     return buf.buffer;
+   }
+
+ playAudio(buffer)
+  {
+    var audioCtx;
+    var started = false;
+    var gainNode =  this.audioContext.createGain();
+
+    let source = this.audioContext.createBufferSource();
+    let audioBuffer = this.audioContext.createBuffer( 1, 2048, this.audioContext.sampleRate );
+    audioBuffer.getChannelData( 0 ).set( buffer );
+    source.buffer = audioBuffer;
+    source.connect(gainNode);
+    gainNode.connect( this.audioContext.destination );
+    source.start(0);
+    console.log(buffer);
+  }
+
   initializePlayers (data) {
-      let that = this  
-    // loop through all the users and creating in game objects to represent them 
+      let that = this
+    // loop through all the users and creating in game objects to represent them
     console.log('initialized', data);
     this.otherPlayers = data.players.filter( (item) => item.id !== 1 )
     this.otherPlayers.forEach(function(obj) {
         that.addPlayers(obj)
     });
    };
- 
+
  addPlayer (data) {
      // add to player array
      let cube_geometry = new THREE.BoxGeometry(5,5,5);
@@ -306,7 +357,6 @@ export default class App {
      this.mesh.position.y = 3
      this.scene.add(this.mesh);
      console.log('added mesh to scene', this.mesh)
-
  };
 
  addPlayers (data) {
@@ -326,9 +376,8 @@ export default class App {
     this.scene.add(this.mesh);
 
     console.log('added mesh to scene', this.mesh)
-
 };
- 
+
  movePlayer (data) {
     // send player movement data to server
     console.log('this is player data coming back from server', data)
@@ -340,14 +389,14 @@ export default class App {
         }
     })
  };
- 
+
  removePlayer (data) {
     // kill player
  };
- 
+
  createPlayerEntity (data) {
      // make a new player from the data that came back from server
-     
+
     // move player to position
 
     // return the player
@@ -387,7 +436,7 @@ export default class App {
                 this.velocity.y = Math.max( 0, this.velocity.y );
                 canJump = true;
             }
-            
+
             this.controls.getObject().translateX( this.velocity.x * delta );
             this.controls.getObject().translateY( this.velocity.y * delta );
             this.controls.getObject().translateZ( this.velocity.z * delta );
@@ -402,7 +451,7 @@ export default class App {
            this.last = now;
             // console.log('hello this should be every second')
            this.socket.emit('positionUpdate', {
-              id: this.thePlayer.id, 
+              id: this.thePlayer.id,
               x: this.controls.getObject().position.x,
               y: this.controls.getObject().position.y,
               z: this.controls.getObject().position.z

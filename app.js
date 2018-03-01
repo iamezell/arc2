@@ -14,6 +14,19 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+
+//   app.all('*', function(req, res, next){
+//     if (req.secure) {
+//        return next();
+//     };
+//     res.redirect('https://'+req.hostname+':'+app.get('port_https')+req.url);
+//     return next();
+//
+// });
+
+// app.set('port_https', 443);
+
+
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
