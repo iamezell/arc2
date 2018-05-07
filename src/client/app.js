@@ -48,7 +48,7 @@ export default class App {
   }
 
   init() {
-    let socket = io.connect('https://10.0.0.139');
+    let socket = io.connect('https://172.17.193.139/');
     this.socket = socket;
     let self = this;
     let realAudioInput = {};
@@ -99,10 +99,15 @@ export default class App {
         self.removePlayer(data);
     });
 
+    socket.on('toggleFog', function (data) {
+        self.toggleFog(data);
+    });
+
     socket.on('addOtherPlayer', (data) => {
         console.log('adding another player', data)
         self.addOtherPlayer(data)
     })
+
     socket.on('test', (data) => {
         console.log('just a test to see if things are working')
     })
@@ -229,7 +234,9 @@ export default class App {
                 case 38: // up
                 case 87: // w
                     // that.fogIsActive ?
-                    // console.log('fog is active letting it work') :
+                    console.log('fog is active letting it work')
+                    that.toggleFog();
+                  
                     that.moveForward = true;
                     break;
                 case 37: // left
@@ -305,6 +312,10 @@ export default class App {
                 // window.addEventListener( 'resize', onWindowResize, false );
         this.animate()
 
+  }
+
+  toggleFog(data) {
+     console.log('the cloud is there: ', data)
   }
 
   recorderProcess(e) {
