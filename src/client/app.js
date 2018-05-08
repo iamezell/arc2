@@ -316,6 +316,7 @@ export default class App {
 
   toggleFog(data) {
      console.log('the cloud is there: ', data)
+    this.socket.emit('') 
   }
 
   recorderProcess(e) {
