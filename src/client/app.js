@@ -48,7 +48,7 @@ export default class App {
   }
 
   init() {
-    let socket = io.connect('https://172.17.193.139/');
+    let socket = io.connect('https://10.0.0.165/');
     this.socket = socket;
     let self = this;
     let realAudioInput = {};
@@ -346,7 +346,7 @@ export default class App {
     source.buffer = audioBuffer;
     source.connect(gainNode);
     gainNode.connect( this.audioContext.destination );
-    source.start(0);
+    source.start();
     console.log(buffer);
   }
 
