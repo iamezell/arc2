@@ -6,11 +6,20 @@ const config = {
         path: path.resolve(__dirname,'public/js'),
         filename: 'bundle.js'
     },
+    devtool: 'inline-source-map',
+    mode: 'development',
     module: {
         rules: [
-            {
-                use: 'babel-loader',
+            {   
+                exclude: /(node_modules|bower_components)/,
                 test: /\.js$/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['@babel/preset-env'],
+                        plugins: ['@babel/plugin-proposal-object-rest-spread']
+                      }
+                  }
             },
             {
                 use:['style-loader', 'css-loader'],
