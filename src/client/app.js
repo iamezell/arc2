@@ -60,14 +60,26 @@ export default class App {
     });
     console.log('this is the navigator', navigator)
     this.audioContext = new AudioContext()
-    navigator.mediaDevices.getUserMedia({audio: true, video: false})
+    navigator.mediaDevices.getUserMedia({audio: true})
     .then((stream)=>{
       console.log('this is the stream', stream)
       realAudioInput = this.audioContext.createMediaStreamSource(stream);
-      //dest = this.audioContext.createMediaStreamDestination();
-      recorder = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
-      recorder.onaudioprocess = this.recorderProcess.bind(this);
-      recorder.connect(this.audioContext.destination);
+      // dest = this.audioContext.createMediaStreamDestination();
+      //var mediaRecorder = new MediaRecorder(dest.stream);
+
+      // Create a biquadfilter
+      var biquadFilter = this.audioContext.createBiquadFilter();
+      biquadFilter.type = "lowshelf";
+      biquadFilter.frequency.value = 1000;
+      biquadFilter.gain.value =2;
+
+      realAudioInput.connect(biquadFilter)
+      biquadFilter.connect(this.audioContext.destination)
+
+
+    //   recorder = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
+    //   recorder.onaudioprocess = this.recorderProcess.bind(this);
+    //   recorder.connect(this.audioContext.destination);
     })
     .catch((err)=>{
       console.log('we got an error: ', err)
