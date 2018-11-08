@@ -48,7 +48,7 @@ export default class App {
   }
 
   init() {
-    let socket = io.connect('https://10.0.0.165/');
+    let socket = io.connect('https://10.0.0.89/');
     this.socket = socket;
     let self = this;
     let realAudioInput = {};
