@@ -57,6 +57,10 @@ export default class App {
     let bufferSize = 4096;
     socket.on('connect', function(data) {
         socket.emit('join', 'Hello World from client');
+        rtc = new SimplePeer({ initiator: true, trickle: false });
+        rtc.on('signal', function(data) {
+          socket.send(data);
+        });
     });
     console.log('this is the navigator', navigator)
     this.audioContext = new AudioContext()
@@ -68,13 +72,18 @@ export default class App {
       //var mediaRecorder = new MediaRecorder(dest.stream);
 
       // Create a biquadfilter
-      var biquadFilter = this.audioContext.createBiquadFilter();
-      biquadFilter.type = "lowshelf";
-      biquadFilter.frequency.value = 1000;
-      biquadFilter.gain.value =2;
+    //   var biquadFilter = this.audioContext.createBiquadFilter();
+    //   biquadFilter.type = "lowshelf";
+    //   biquadFilter.frequency.value = 1000;
+    //   biquadFilter.gain.value =2;
 
-      realAudioInput.connect(biquadFilter)
-      biquadFilter.connect(this.audioContext.destination)
+    //   realAudioInput.connect(biquadFilter)
+      // biquadFilter.connect(this.audioContext.destination)
+
+    //   this.audioContext.audioWorklet.addModule('BypassProcessor.js').then(() => {
+    //     let bypassNode = new AudioWorkletNode(this.audioContext, 'bypass-processor');
+    //     biquadFilter.connect(bypassNode).connect(this.audioContext.destination)
+    //   });
 
 
     //   recorder = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
@@ -331,12 +340,12 @@ export default class App {
     this.socket.emit('') 
   }
 
-  recorderProcess(e) {
-         var left = e.inputBuffer.getChannelData(0);
-         let outputBuffer = e.outputBuffer;
-         console.log('this i sthe number od ', e.nmberOfChannels)
-         this.socket.emit('audio-blod-send', this.convertFloat32ToInt16(left));
-  }
+//   recorderProcess(e) {
+//          var left = e.inputBuffer.getChannelData(0);
+//          let outputBuffer = e.outputBuffer;
+//          console.log('this i sthe number od ', e.nmberOfChannels)
+//          this.socket.emit('audio-blod-send', this.convertFloat32ToInt16(left));
+//   }
 
   convertFloat32ToInt16(buffer) {
      let l = buffer.length;
