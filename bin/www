@@ -13,6 +13,16 @@ const fs = require('fs');
 var server = {};
 
 
+var Turn = require('node-turn');
+var turnServer = new Turn({
+  // set options
+  authMech: 'long-term',
+  credentials: {
+    username: "password"
+  }
+});
+turnServer.start();
+
 /**
  * Get port from environment and store in Express.
  */
@@ -29,6 +39,35 @@ var server = {};
   server.on('error', onError);
   server.on('listening', onListening);
 console.log('got this far')
+
+function requestTurn(turnURL) {
+  var turnExists = false;
+  for (var i in pcConfig.iceServers) {
+    if (pcConfig.iceServers[i].urls.substr(0, 5) === 'turn:') {
+      turnExists = true;
+      turnReady = true;
+      break;
+    }
+  }
+  if (!turnExists) {
+    console.log('Getting TURN server from ', turnURL);
+    // No TURN server. Get one from computeengineondemand.appspot.com:
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        var turnServer = JSON.parse(xhr.responseText);
+        console.log('Got TURN server: ', turnServer);
+        pcConfig.iceServers.push({
+          'urls': 'turn:' + turnServer.username + '@' + turnServer.turn,
+          'credential': turnServer.password
+        });
+        turnReady = true;
+      }
+    };
+    xhr.open('GET', turnURL, true);
+    xhr.send();
+  }
+}
 
 /**
  * Get port from environment and store in Express.
@@ -55,6 +94,7 @@ function Player (id) {
     this.entity = null;
 }
 
+
 io.on('connection', function(socket) {
     socket.on ('join', function () {
             var idNum = players.length;
@@ -80,6 +120,8 @@ io.on('connection', function(socket) {
     // })
         socket.broadcast.emit ('playerMoved', data);
     });
+
+
 
 socket.on('audio-blod-send',function(data){
   console.log('trying to emit the data')

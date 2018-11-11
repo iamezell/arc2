@@ -45,6 +45,20 @@ export default class App {
     this.init();
     this.fogIsActive = false
     this.chance = new Chance()
+    this.pcConfig = {
+        'iceServers': [{
+          'urls': 'stun:stun.l.google.com:19302'
+        }]
+      };
+
+    var isChannelReady = false;
+var isInitiator = false;
+var isStarted = false;
+var localStream;
+var pc;
+var remoteStream;
+var turnReady;
+
   }
 
   init() {
@@ -55,23 +69,186 @@ export default class App {
     let dest = {};
     let recorder = {}
     let bufferSize = 4096;
+    let pcConfig = {
+        'iceServers': [{
+          'urls': 'stun:stun.l.google.com:19302'
+        }]
+      };
+    // Set up audio and video regardless of what devices are present.
+var sdpConstraints = {
+    offerToReceiveAudio: true,
+    offerToReceiveVideo: true
+  };
+  
     socket.on('connect', function(data) {
         socket.emit('join', 'Hello World from client');
     });
     console.log('this is the navigator', navigator)
     this.audioContext = new AudioContext()
     navigator.mediaDevices.getUserMedia({audio: true, video: false})
-    .then((stream)=>{
-      console.log('this is the stream', stream)
-      realAudioInput = this.audioContext.createMediaStreamSource(stream);
-      //dest = this.audioContext.createMediaStreamDestination();
-      recorder = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
-      recorder.onaudioprocess = this.recorderProcess.bind(this);
-      recorder.connect(this.audioContext.destination);
-    })
+    // .then((stream)=>{
+    //   console.log('this is the stream', stream)
+    //   realAudioInput = this.audioContext.createMediaStreamSource(stream);
+    //   //dest = this.audioContext.createMediaStreamDestination();
+    //   recorder = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
+    //   recorder.onaudioprocess = this.recorderProcess.bind(this);
+    //   recorder.connect(this.audioContext.destination);
+    // })
+    .then(gotStream)
     .catch((err)=>{
       console.log('we got an error: ', err)
     })
+    function gotStream(stream) {
+        console.log('Adding local stream.');
+        localStream = stream;
+        localVideo.srcObject = stream;
+        sendMessage('got user media');
+        if (isInitiator) {
+          maybeStart();
+        }
+      }
+
+      var constraints = {
+        video: true
+      };
+      
+    console.log('Getting user media with constraints', constraints);
+      
+
+    if (location.hostname !== 'localhost') {
+        requestTurn(
+          'https://numb.viagenie.ca'
+        );
+    }
+
+    function maybeStart() {
+        console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
+        if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
+          console.log('>>>>>> creating peer connection');
+          createPeerConnection();
+          pc.addStream(localStream);
+          isStarted = true;
+          console.log('isInitiator', isInitiator);
+          if (isInitiator) {
+            doCall();
+          }
+        }
+      }
+/////////////////////////////////////////////////////////
+
+function createPeerConnection() {
+    try {
+      pc = new RTCPeerConnection(null);
+      pc.onicecandidate = handleIceCandidate;
+      pc.onaddstream = handleRemoteStreamAdded;
+      pc.onremovestream = handleRemoteStreamRemoved;
+      console.log('Created RTCPeerConnnection');
+    } catch (e) {
+      console.log('Failed to create PeerConnection, exception: ' + e.message);
+      alert('Cannot create RTCPeerConnection object.');
+      return;
+    }
+  }
+  
+  function handleIceCandidate(event) {
+    console.log('icecandidate event: ', event);
+    if (event.candidate) {
+      sendMessage({
+        type: 'candidate',
+        label: event.candidate.sdpMLineIndex,
+        id: event.candidate.sdpMid,
+        candidate: event.candidate.candidate
+      });
+    } else {
+      console.log('End of candidates.');
+    }
+  }
+  
+  function handleCreateOfferError(event) {
+    console.log('createOffer() error: ', event);
+  }
+  
+  function doCall() {
+    console.log('Sending offer to peer');
+    pc.createOffer(setLocalAndSendMessage, handleCreateOfferError);
+  }
+  
+  function doAnswer() {
+    console.log('Sending answer to peer.');
+    pc.createAnswer().then(
+      setLocalAndSendMessage,
+      onCreateSessionDescriptionError
+    );
+  }
+  
+  function setLocalAndSendMessage(sessionDescription) {
+    pc.setLocalDescription(sessionDescription);
+    console.log('setLocalAndSendMessage sending message', sessionDescription);
+    sendMessage(sessionDescription);
+  }
+  
+  function onCreateSessionDescriptionError(error) {
+    trace('Failed to create session description: ' + error.toString());
+  }
+  
+  function requestTurn(turnURL) {
+    var turnExists = false;
+    for (var i in pcConfig.iceServers) {
+      if (pcConfig.iceServers[i].urls.substr(0, 5) === 'turn:') {
+        turnExists = true;
+        turnReady = true;
+        break;
+      }
+    }
+    if (!turnExists) {
+      console.log('Getting TURN server from ', turnURL);
+      // No TURN server. Get one from computeengineondemand.appspot.com:
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          var turnServer = JSON.parse(xhr.responseText);
+          console.log('Got TURN server: ', turnServer);
+          this.pcConfig.iceServers.push({
+            'urls': 'turn:' + turnServer.username + '@' + turnServer.turn,
+            'credential': turnServer.password
+          });
+          turnReady = true;
+        }
+      };
+      xhr.open('GET', turnURL, true);
+      xhr.send();
+    }
+  }
+  
+  function handleRemoteStreamAdded(event) {
+    console.log('Remote stream added.');
+    remoteStream = event.stream;
+    remoteVideo.srcObject = remoteStream;
+  }
+  
+  function handleRemoteStreamRemoved(event) {
+    console.log('Remote stream removed. Event: ', event);
+  }
+  
+  function hangup() {
+    console.log('Hanging up.');
+    stop();
+    sendMessage('bye');
+  }
+  
+  function handleRemoteHangup() {
+    console.log('Session terminated.');
+    stop();
+    isInitiator = false;
+  }
+  
+  function stop() {
+    isStarted = false;
+    pc.close();
+    pc = null;
+  }
+
+      
 
     socket.on ('playerData', function (data) {
         console.log('Connected.', data);
@@ -80,6 +257,47 @@ export default class App {
         self.initializePlayers (data);
        // socket.emit('joinGroup');
     });
+
+    function sendMessage(message) {
+        console.log('Client sending message: ', message);
+        socket.emit('message', message);
+      }
+
+
+    // This client receives a message
+socket.on('message', function(message) {
+    console.log('Client received message:', message);
+    if (message === 'got user media') {
+      maybeStart();
+    } else if (message.type === 'offer') {
+      if (!isInitiator && !isStarted) {
+        maybeStart();
+      }
+      pc.setRemoteDescription(new RTCSessionDescription(message));
+      doAnswer();
+    } else if (message.type === 'answer' && isStarted) {
+      pc.setRemoteDescription(new RTCSessionDescription(message));
+    } else if (message.type === 'candidate' && isStarted) {
+      var candidate = new RTCIceCandidate({
+        sdpMLineIndex: message.label,
+        candidate: message.candidate
+      });
+      pc.addIceCandidate(candidate);
+    } else if (message === 'bye' && isStarted) {
+      handleRemoteHangup();
+    }
+  });
+
+    socket.on('ipaddr', function() {
+        var ifaces = os.networkInterfaces();
+        for (var dev in ifaces) {
+          ifaces[dev].forEach(function(details) {
+            if (details.family === 'IPv4' && details.address !== '127.0.0.1') {
+              socket.emit('ipaddr', details.address);
+            }
+          });
+        }
+      });
 
     socket.on('playerJoined', function (data) {
         self.addPlayer(data);
@@ -318,6 +536,7 @@ export default class App {
      console.log('the cloud is there: ', data)
     this.socket.emit('') 
   }
+
 
   recorderProcess(e) {
          var left = e.inputBuffer.getChannelData(0);
