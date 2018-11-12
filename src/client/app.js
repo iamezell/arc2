@@ -2,6 +2,7 @@ import Main from './Main'
 import * as THREE from 'three'
 import Player from './worldobjects/Player'
 const Chance = require('chance')
+import Peer from 'peerjs';
 // import AbstractApplication from 'views/AbstractApplication'
 // import shaderVert from './shaders/custom.vert'
 // import shaderFrag from './shaders/custom.frag'
@@ -45,11 +46,11 @@ export default class App {
     this.init();
     this.fogIsActive = false
     this.chance = new Chance()
-    this.pcConfig = {
-        'iceServers': [{
-          'urls': 'stun:stun.l.google.com:19302'
-        }]
-      };
+   
+
+    // this.peer = new Peer('ezell', {host: '10.0.0.165', port:443, path:'/peerjs' });
+
+   
 
     var isChannelReady = false;
 var isInitiator = false;
@@ -69,11 +70,7 @@ var turnReady;
     let dest = {};
     let recorder = {}
     let bufferSize = 4096;
-    let pcConfig = {
-        'iceServers': [{
-          'urls': 'stun:stun.l.google.com:19302'
-        }]
-      };
+    self.playerArray = [];
     // Set up audio and video regardless of what devices are present.
 var sdpConstraints = {
     offerToReceiveAudio: true,
@@ -83,221 +80,51 @@ var sdpConstraints = {
     socket.on('connect', function(data) {
         socket.emit('join', 'Hello World from client');
     });
-    console.log('this is the navigator', navigator)
-    this.audioContext = new AudioContext()
-    navigator.mediaDevices.getUserMedia({audio: true, video: false})
+    // console.log('this is the navigator', navigator)
+    // this.audioContext = new AudioContext()
+    // navigator.mediaDevices.getUserMedia({audio: true, video: false})
     // .then((stream)=>{
     //   console.log('this is the stream', stream)
-    //   realAudioInput = this.audioContext.createMediaStreamSource(stream);
-    //   //dest = this.audioContext.createMediaStreamDestination();
-    //   recorder = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
-    //   recorder.onaudioprocess = this.recorderProcess.bind(this);
-    //   recorder.connect(this.audioContext.destination);
+    //   // realAudioInput = this.audioContext.createMediaStreamSource(stream);
+    //   // //dest = this.audioContext.createMediaStreamDestination();
+    //   // recorder = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
+    //   // recorder.onaudioprocess = this.recorderProcess.bind(this);
+    //   // recorder.connect(this.audioContext.destination);
     // })
-    .then(gotStream)
-    .catch((err)=>{
-      console.log('we got an error: ', err)
-    })
-    function gotStream(stream) {
-        console.log('Adding local stream.');
-        localStream = stream;
-        localVideo.srcObject = stream;
-        sendMessage('got user media');
-        if (isInitiator) {
-          maybeStart();
-        }
-      }
+    // .catch((err)=>{
+    //   console.log('we got an error: ', err)
+    // })
 
-      var constraints = {
-        video: true
-      };
-      
-    console.log('Getting user media with constraints', constraints);
-      
-
-    if (location.hostname !== 'localhost') {
-        requestTurn(
-          'https://numb.viagenie.ca'
-        );
-    }
-
-    function maybeStart() {
-        console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
-        if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
-          console.log('>>>>>> creating peer connection');
-          createPeerConnection();
-          pc.addStream(localStream);
-          isStarted = true;
-          console.log('isInitiator', isInitiator);
-          if (isInitiator) {
-            doCall();
-          }
-        }
-      }
-/////////////////////////////////////////////////////////
-
-function createPeerConnection() {
-    try {
-      pc = new RTCPeerConnection(null);
-      pc.onicecandidate = handleIceCandidate;
-      pc.onaddstream = handleRemoteStreamAdded;
-      pc.onremovestream = handleRemoteStreamRemoved;
-      console.log('Created RTCPeerConnnection');
-    } catch (e) {
-      console.log('Failed to create PeerConnection, exception: ' + e.message);
-      alert('Cannot create RTCPeerConnection object.');
-      return;
-    }
-  }
-  
-  function handleIceCandidate(event) {
-    console.log('icecandidate event: ', event);
-    if (event.candidate) {
-      sendMessage({
-        type: 'candidate',
-        label: event.candidate.sdpMLineIndex,
-        id: event.candidate.sdpMid,
-        candidate: event.candidate.candidate
-      });
-    } else {
-      console.log('End of candidates.');
-    }
-  }
-  
-  function handleCreateOfferError(event) {
-    console.log('createOffer() error: ', event);
-  }
-  
-  function doCall() {
-    console.log('Sending offer to peer');
-    pc.createOffer(setLocalAndSendMessage, handleCreateOfferError);
-  }
-  
-  function doAnswer() {
-    console.log('Sending answer to peer.');
-    pc.createAnswer().then(
-      setLocalAndSendMessage,
-      onCreateSessionDescriptionError
-    );
-  }
-  
-  function setLocalAndSendMessage(sessionDescription) {
-    pc.setLocalDescription(sessionDescription);
-    console.log('setLocalAndSendMessage sending message', sessionDescription);
-    sendMessage(sessionDescription);
-  }
-  
-  function onCreateSessionDescriptionError(error) {
-    trace('Failed to create session description: ' + error.toString());
-  }
-  
-  function requestTurn(turnURL) {
-    var turnExists = false;
-    for (var i in pcConfig.iceServers) {
-      if (pcConfig.iceServers[i].urls.substr(0, 5) === 'turn:') {
-        turnExists = true;
-        turnReady = true;
-        break;
-      }
-    }
-    if (!turnExists) {
-      console.log('Getting TURN server from ', turnURL);
-      // No TURN server. Get one from computeengineondemand.appspot.com:
-      var xhr = new XMLHttpRequest();
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          var turnServer = JSON.parse(xhr.responseText);
-          console.log('Got TURN server: ', turnServer);
-          this.pcConfig.iceServers.push({
-            'urls': 'turn:' + turnServer.username + '@' + turnServer.turn,
-            'credential': turnServer.password
-          });
-          turnReady = true;
-        }
-      };
-      xhr.open('GET', turnURL, true);
-      xhr.send();
-    }
-  }
-  
-  function handleRemoteStreamAdded(event) {
-    console.log('Remote stream added.');
-    remoteStream = event.stream;
-    remoteVideo.srcObject = remoteStream;
-  }
-  
-  function handleRemoteStreamRemoved(event) {
-    console.log('Remote stream removed. Event: ', event);
-  }
-  
-  function hangup() {
-    console.log('Hanging up.');
-    stop();
-    sendMessage('bye');
-  }
-  
-  function handleRemoteHangup() {
-    console.log('Session terminated.');
-    stop();
-    isInitiator = false;
-  }
-  
-  function stop() {
-    isStarted = false;
-    pc.close();
-    pc = null;
-  }
-
+ 
+ 
+ 
       
 
     socket.on ('playerData', function (data) {
         console.log('Connected.', data);
         // add id to player
         self.thePlayer.id = data.id;
+        self.peer = new Peer(self.thePlayer.id, {host: '10.0.0.165', port:443, path:'/peerjs' });
         self.initializePlayers (data);
+        self.playerArray.push(self.thePlayer.id)
+        // self.peer.on('call', (call)=>{
+        //   call.answer(mediaStream)
+        // })
+
+        self.audioContext = new AudioContext()
+    navigator.mediaDevices.getUserMedia({audio: true, video: false})
+    .then((stream)=>{
+      console.log('this is the stream', stream)
+      self.peer.on('call', (call)=>{
+        console.log('sending stream')
+        call.answer(stream)
+      })
+    })
+    .catch((err)=>{
+      console.log('we got an error: ', err)
+    })
        // socket.emit('joinGroup');
     });
-
-    function sendMessage(message) {
-        console.log('Client sending message: ', message);
-        socket.emit('message', message);
-      }
-
-
-    // This client receives a message
-socket.on('message', function(message) {
-    console.log('Client received message:', message);
-    if (message === 'got user media') {
-      maybeStart();
-    } else if (message.type === 'offer') {
-      if (!isInitiator && !isStarted) {
-        maybeStart();
-      }
-      pc.setRemoteDescription(new RTCSessionDescription(message));
-      doAnswer();
-    } else if (message.type === 'answer' && isStarted) {
-      pc.setRemoteDescription(new RTCSessionDescription(message));
-    } else if (message.type === 'candidate' && isStarted) {
-      var candidate = new RTCIceCandidate({
-        sdpMLineIndex: message.label,
-        candidate: message.candidate
-      });
-      pc.addIceCandidate(candidate);
-    } else if (message === 'bye' && isStarted) {
-      handleRemoteHangup();
-    }
-  });
-
-    socket.on('ipaddr', function() {
-        var ifaces = os.networkInterfaces();
-        for (var dev in ifaces) {
-          ifaces[dev].forEach(function(details) {
-            if (details.family === 'IPv4' && details.address !== '127.0.0.1') {
-              socket.emit('ipaddr', details.address);
-            }
-          });
-        }
-      });
 
     socket.on('playerJoined', function (data) {
         self.addPlayer(data);
@@ -306,6 +133,52 @@ socket.on('message', function(message) {
     socket.on('otherPlayerJoined', function (data) {
         console.log('other player joined', data)
         self.addPlayer(data)
+        console.log('the new player id is', data.id)
+        // connect to player
+        let audioContext = new AudioContext()
+        navigator.mediaDevices.getUserMedia({audio: true, video: false})
+        .then((stream)=>{
+        var call = self.peer.call(data.id, stream);
+          call.on('stream', function(remoteStream) {
+        //     // Show stream in some <video> element.
+        //     console.log('getting remote stream', remoteStream)
+        //     realAudioInput = audioContext.createMediaStreamSource(remoteStream);
+        //     // Create a biquadfilter
+        // var biquadFilter = audioContext.createBiquadFilter();
+        // biquadFilter.type = "lowshelf";
+        // biquadFilter.frequency.value = 1000;
+        // biquadFilter.gain.value = 2;
+
+        // // connect the AudioBufferSourceNode to the gainNode
+        // // and the gainNode to the destination, so we can play the
+        // // music and adjust the volume using the mouse cursor
+        // realAudioInput.connect(biquadFilter);
+        // biquadFilter.connect(audioContext.destination);
+        const audio = document.querySelector('audio');
+
+        const audioTracks = remoteStream.getAudioTracks();
+        // console.log('Got stream with constraints:', constraints);
+        console.log('Using audio device: ' + audioTracks[0].label);
+        remoteStream.oninactive = function() {
+          console.log('Stream ended');
+        };
+        window.stream = remoteStream; // make variable available to browser console
+        audio.srcObject = remoteStream;
+
+          });
+          // realAudioInput = this.audioContext.createMediaStreamSource(stream);
+          // //dest = this.audioContext.createMediaStreamDestination();
+          // recorder = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
+          // recorder.onaudioprocess = this.recorderProcess.bind(this);
+          // recorder.connect(this.audioContext.destination);
+
+          
+        })
+        .catch((err)=>{
+          console.log('we got an error: ', err)
+        })
+
+
     });
 
     socket.on('playerMoved', function (data) {
@@ -343,7 +216,7 @@ socket.on('message', function(message) {
     this.prevTime = performance.now();
     this.velocity = new THREE.Vector3();
     let that = this;
-    console.log('this is three:', THREE)
+    // console.log('this is three:', THREE)
 
     THREE.PointerLockControls = function ( camera ) {
         var scope = this
@@ -447,7 +320,7 @@ socket.on('message', function(message) {
 
 
         let onKeyDown = function ( event ) {
-            console.log(event.key)
+            // console.log(event.key)
             switch ( event.keyCode ) {
                 case 38: // up
                 case 87: // w
@@ -533,7 +406,7 @@ socket.on('message', function(message) {
   }
 
   toggleFog(data) {
-     console.log('the cloud is there: ', data)
+    //  console.log('the cloud is there: ', data)
     this.socket.emit('') 
   }
 
@@ -573,7 +446,7 @@ socket.on('message', function(message) {
   initializePlayers (data) {
       let that = this
     // loop through all the users and creating in game objects to represent them
-    console.log('initialized', data);
+    // console.log('initialized', data);
     this.otherPlayers = data.players.filter( (item) => item.id !== 1 )
     this.otherPlayers.forEach(function(obj) {
         that.addPlayers(obj)
@@ -587,7 +460,7 @@ socket.on('message', function(message) {
      this.mesh = new THREE.Mesh(cube_geometry, cube_material);
      this.mesh.position.y = 3
      this.scene.add(this.mesh);
-     console.log('added mesh to scene', this.mesh)
+    //  console.log('added mesh to scene', this.mesh)
  };
 
  addPlayers (data) {
@@ -606,12 +479,12 @@ socket.on('message', function(message) {
     this.players.push(player)
     this.scene.add(this.mesh);
 
-    console.log('added mesh to scene', this.mesh)
+    // console.log('added mesh to scene', this.mesh)
 };
 
  movePlayer (data) {
     // send player movement data to server
-    console.log('this is player data coming back from server', data)
+    // console.log('this is player data coming back from server', data)
     this.players.map((item) => {
         if (item.id === data.id) {
             item.mesh.position.x = data.x
@@ -633,8 +506,8 @@ socket.on('message', function(message) {
     // return the player
  }
  fogToZero() {
-     console.log('fog going to zero');
-     console.log('this is the light f',  this.scene.fog.far)
+    //  console.log('fog going to zero');
+    //  console.log('this is the light f',  this.scene.fog.far)
      let fogFar = this.scene.fog.far
 
      if (this.fogIsActive && fogfar > 0) {

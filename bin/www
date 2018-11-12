@@ -5,23 +5,17 @@
  */
 
 var app = require('../app');
+
+
+console.log('this is the app after export', app)
+
 var debug = require('debug')('arc2:server');
 var http = require('http');
 var world = require('../src/server/world')
 var https = require('https')
 const fs = require('fs');
 var server = {};
-
-
-var Turn = require('node-turn');
-var turnServer = new Turn({
-  // set options
-  authMech: 'long-term',
-  credentials: {
-    username: "password"
-  }
-});
-turnServer.start();
+var ExpressPeerServer = require('peer').ExpressPeerServer;
 
 /**
  * Get port from environment and store in Express.
@@ -33,41 +27,23 @@ turnServer.start();
   };
   var port = normalizePort(process.env.PORT || '443');
   app.set('port', port);
+  // var peerserver = ExpressPeerServer(server, {debug:true});
+  
+ 
+  
   server = https.createServer(options, app);
-
+  var peerserver = ExpressPeerServer(server, {debug:true});
+  app.use('/peerjs', peerserver)
+  
 
   server.on('error', onError);
   server.on('listening', onListening);
+ 
+  // app.use('/peerjs', function(req, res){
+  //     console.log('we are in peer')
+  // });
 console.log('got this far')
 
-function requestTurn(turnURL) {
-  var turnExists = false;
-  for (var i in pcConfig.iceServers) {
-    if (pcConfig.iceServers[i].urls.substr(0, 5) === 'turn:') {
-      turnExists = true;
-      turnReady = true;
-      break;
-    }
-  }
-  if (!turnExists) {
-    console.log('Getting TURN server from ', turnURL);
-    // No TURN server. Get one from computeengineondemand.appspot.com:
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        var turnServer = JSON.parse(xhr.responseText);
-        console.log('Got TURN server: ', turnServer);
-        pcConfig.iceServers.push({
-          'urls': 'turn:' + turnServer.username + '@' + turnServer.turn,
-          'credential': turnServer.password
-        });
-        turnReady = true;
-      }
-    };
-    xhr.open('GET', turnURL, true);
-    xhr.send();
-  }
-}
 
 /**
  * Get port from environment and store in Express.
@@ -96,7 +72,9 @@ function Player (id) {
 
 
 io.on('connection', function(socket) {
-    socket.on ('join', function () {
+    console.log('this is the connection', socket)
+    socket.on ('join', function (data) {
+      console.log(data)
             var idNum = players.length;
             var newPlayer = new Player (idNum);
             players.push (newPlayer);
