@@ -136,35 +136,76 @@ var sdpConstraints = {
         console.log('the new player id is', data.id)
         // connect to player
         let audioContext = new AudioContext()
-        navigator.mediaDevices.getUserMedia({audio: true, video: false})
+        let devices = []
+        // navigator.mediaDevices.enumerateDevices().then((deviceInfos)=>{
+        //   for (let i = 0; i !== deviceInfos.length; ++i) {
+        //     const deviceInfo = deviceInfos[i];
+        //     // const option = document.createElement('option');
+        //     // option.value = deviceInfo.deviceId;
+        //     if (deviceInfo.kind === 'audioinput') {
+        //       // option.text = deviceInfo.label ||
+        //         // 'microphone ' + (audioSelect.length + 1);
+        //       // audioSelect.appendChild(option);
+        //       devices = devices.filter((d) => d.kind === 'audioinput');
+        //     } else {
+        //       console.log('Found another kind of device: ', deviceInfo);
+        //     }
+        //   }
+        // })
+        navigator.mediaDevices.getUserMedia({audio:true})
         .then((stream)=>{
         var call = self.peer.call(data.id, stream);
           call.on('stream', function(remoteStream) {
-        //     // Show stream in some <video> element.
-        //     console.log('getting remote stream', remoteStream)
-        //     realAudioInput = audioContext.createMediaStreamSource(remoteStream);
-        //     // Create a biquadfilter
+           // const audio = document.querySelector('audio');
+            // check if context is in suspended state (autoplay policy)
+          if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+            // Show stream in some <video> element.
+            console.log('getting remote stream', remoteStream)
+            var source = audioContext.createMediaStreamSource(remoteStream);
+            var gainNode = audioContext.createGain();
+            gainNode.gain.value = .1;
+            source.connect(gainNode);
+            var dest = audioContext.createMediaStreamDestination();
+            gainNode.connect(audioContext.destination)
+            var audioObj = document.createElement("AUDIO");
+            document.body.appendChild(audioObj)
+            audioObj.srcObject = remoteStream;
+            audioObj = null;
+            
+            // Create a biquadfilter
         // var biquadFilter = audioContext.createBiquadFilter();
         // biquadFilter.type = "lowshelf";
         // biquadFilter.frequency.value = 1000;
-        // biquadFilter.gain.value = 2;
+        // biquadFilter.gain.value = 0;
 
-        // // connect the AudioBufferSourceNode to the gainNode
-        // // and the gainNode to the destination, so we can play the
-        // // music and adjust the volume using the mouse cursor
+        // connect the AudioBufferSourceNode to the gainNode
+        // and the gainNode to the destination, so we can play the
+        // music and adjust the volume using the mouse cursor
         // realAudioInput.connect(biquadFilter);
         // biquadFilter.connect(audioContext.destination);
-        const audio = document.querySelector('audio');
+        // audio.srcObject = remoteStream;
 
-        const audioTracks = remoteStream.getAudioTracks();
-        // console.log('Got stream with constraints:', constraints);
-        console.log('Using audio device: ' + audioTracks[0].label);
-        remoteStream.oninactive = function() {
-          console.log('Stream ended');
-        };
-        window.stream = remoteStream; // make variable available to browser console
-        audio.srcObject = remoteStream;
+        ////////////////////////////////////////////////////////////////
+        // const audio = document.querySelector('audio');
 
+        // const audioTracks = remoteStream.getAudioTracks();
+        // // console.log('Got stream with constraints:', constraints);
+        // console.log('Using audio device: ' + audioTracks[0].label);
+        // remoteStream.oninactive = function() {
+        //   console.log('Stream ended');
+        // };
+        // window.stream = remoteStream; // make variable available to browser console
+        // audio.srcObject = remoteStream;
+        /////////////////////////////////////////////////////////////////
+
+        // var local_output = audioContext.createMediaStreamDestination();
+        // var peerInput = audioContext.createMediaStreamSource(remoteStream);
+        // var panner = audioContext.createPanner();
+        // panner.setPosition(10, 10, 100);
+        // peerInput.connect(panner);
+        // panner.connect(local_output);
           });
           // realAudioInput = this.audioContext.createMediaStreamSource(stream);
           // //dest = this.audioContext.createMediaStreamDestination();
