@@ -60,8 +60,6 @@ app.set('port', port);
 var io = require('socket.io')(server);
 var players = []
 
-var players = [];
-
 function Player (id) {
     this.id = id;
     this.x = 0;
@@ -73,6 +71,7 @@ function Player (id) {
 
 io.on('connection', function(socket) {
     console.log('this is the connection', socket)
+
     socket.on ('join', function (data) {
       console.log(data)
             var idNum = players.length;
@@ -89,14 +88,15 @@ io.on('connection', function(socket) {
 
     socket.on ('positionUpdate', function (data) {
       console.log('got player movement data', data)
-    //   players.map((item) => {
-    //     if (item.id === data.id) {
-    //         item.x = data.x
-    //         item.y = data.y
-    //         item.z = data.z
-    //     }
-    // })
-        socket.broadcast.emit ('playerMoved', data);
+      players.map((item) => {
+        if (item.id === data.id) {
+            item.x = data.x
+            item.y = data.y
+            item.z = data.z
+        }
+    })
+    console.log('this is the players array', players)
+        socket.broadcast.emit ('updatePlayers', players);
     });
 
 

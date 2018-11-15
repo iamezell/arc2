@@ -72,7 +72,7 @@ var turnReady;
     let bufferSize = 4096;
     self.playerArray = [];
     // Set up audio and video regardless of what devices are present.
-var sdpConstraints = {
+  var sdpConstraints = {
     offerToReceiveAudio: true,
     offerToReceiveVideo: true
   };
@@ -101,7 +101,7 @@ var sdpConstraints = {
       
 
     socket.on ('playerData', function (data) {
-        console.log('Connected.', data);
+        console.log('Connected.!!!!!', data);
         // add id to player
         self.thePlayer.id = data.id;
         self.peer = new Peer(self.thePlayer.id, {host: '10.0.0.165', port:443, path:'/peerjs' });
@@ -126,12 +126,15 @@ var sdpConstraints = {
        // socket.emit('joinGroup');
     });
 
-    socket.on('playerJoined', function (data) {
+    socket.on('playerJoined', function (data) 
+    {
+        console.log('adding player', data)
         self.addPlayer(data);
     });
 
     socket.on('otherPlayerJoined', function (data) {
         console.log('other player joined', data)
+        // self.initializePlayers (data);
         self.addPlayer(data)
         console.log('the new player id is', data.id)
         // connect to player
@@ -164,11 +167,14 @@ var sdpConstraints = {
             // Show stream in some <video> element.
             console.log('getting remote stream', remoteStream)
             var source = audioContext.createMediaStreamSource(remoteStream);
-            var gainNode = audioContext.createGain();
-            gainNode.gain.value = .1;
-            source.connect(gainNode);
+            // var gainNode = audioContext.createGain();
+            // gainNode.gain.value = .1;
+            // source.connect(gainNode);
+            var panner = audioContext.createPanner();
+            panner.setPosition(0, 0, 0);
+            source.connect(panner);
             var dest = audioContext.createMediaStreamDestination();
-            gainNode.connect(audioContext.destination)
+            panner.connect(audioContext.destination)
             var audioObj = document.createElement("AUDIO");
             document.body.appendChild(audioObj)
             audioObj.srcObject = remoteStream;
@@ -223,8 +229,22 @@ var sdpConstraints = {
     });
 
     socket.on('playerMoved', function (data) {
-      console.log('player moved', data)
+    //   console.log('player moved', data)
         self.movePlayer(data);
+    });
+
+    socket.on('updatePlayers', function (data) {
+    //   console.log('player moved', data)
+    let otherPlayers = data.filter( (item) => item.id !== self.thePlayer.id )
+    self.players.map((item,index,array) => {
+        console.log('this is the index', index)
+        console.log('this is the otherPlayers', otherPlayers)
+        if (item.id === otherPlayers[index].id) {
+            item.mesh.position.x = otherPlayers[index].x
+            item.mesh.position.y = otherPlayers[index].y
+            item.mesh.position.z = otherPlayers[index].z
+        }
+    })
     });
 
     socket.on('killPlayer', function (data) {
@@ -487,8 +507,9 @@ var sdpConstraints = {
   initializePlayers (data) {
       let that = this
     // loop through all the users and creating in game objects to represent them
-    // console.log('initialized', data);
-    this.otherPlayers = data.players.filter( (item) => item.id !== 1 )
+    console.log('initialized', data.players);
+    console.log('initialized', this.thePlayer);
+    this.otherPlayers = data.players.filter( (item) => item.id !== this.thePlayer.id )
     this.otherPlayers.forEach(function(obj) {
         that.addPlayers(obj)
     });
@@ -496,12 +517,15 @@ var sdpConstraints = {
 
  addPlayer (data) {
      // add to player array
+     let player = new Player()
+    player.id = data.id;
      let cube_geometry = new THREE.BoxGeometry(5,5,5);
      let cube_material = new THREE.MeshBasicMaterial({ color: 0x7777ff, wireframe: false})
      this.mesh = new THREE.Mesh(cube_geometry, cube_material);
      this.mesh.position.y = 3
      this.scene.add(this.mesh);
-    //  console.log('added mesh to scene', this.mesh)
+     this.players.push(player)
+    console.log('added mesh to scene', this.mesh)
  };
 
  addPlayers (data) {
@@ -520,12 +544,12 @@ var sdpConstraints = {
     this.players.push(player)
     this.scene.add(this.mesh);
 
-    // console.log('added mesh to scene', this.mesh)
+    console.log('added other player mesh to scene', this.mesh)
 };
 
  movePlayer (data) {
     // send player movement data to server
-    // console.log('this is player data coming back from server', data)
+    console.log('this is player data coming back from server', data)
     this.players.map((item) => {
         if (item.id === data.id) {
             item.mesh.position.x = data.x
