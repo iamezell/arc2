@@ -76,10 +76,12 @@ var turnReady;
     offerToReceiveAudio: true,
     offerToReceiveVideo: true
   };
-  
-    socket.on('connect', function(data) {
-        socket.emit('join', 'Hello World from client');
-    });
+
+  //tell the server that we want to make a character
+  socket.emit('join', 'Hello World from client');
+    // socket.on('connect', function(data) {
+    //     socket.emit('join', 'Hello World from client');
+    // });
     // console.log('this is the navigator', navigator)
     // this.audioContext = new AudioContext()
     // navigator.mediaDevices.getUserMedia({audio: true, video: false})

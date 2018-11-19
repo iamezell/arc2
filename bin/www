@@ -7,7 +7,7 @@
 var app = require('../app');
 
 
-console.log('this is the app after export', app)
+// console.log('this is the app after export', app)
 
 var debug = require('debug')('arc2:server');
 var http = require('http');
@@ -70,10 +70,10 @@ function Player (id) {
 
 
 io.on('connection', function(socket) {
-    console.log('this is the connection', socket)
+   console.log('there is a connection',socket)
 
     socket.on ('join', function (data) {
-      console.log(data)
+      //console.log(data)
             var idNum = players.length;
             var newPlayer = new Player (idNum);
             players.push (newPlayer);
@@ -87,7 +87,7 @@ io.on('connection', function(socket) {
 
 
     socket.on ('positionUpdate', function (data) {
-      console.log('got player movement data', data)
+      // console.log('got player movement data', data)
       players.map((item) => {
         if (item.id === data.id) {
             item.x = data.x
@@ -95,7 +95,7 @@ io.on('connection', function(socket) {
             item.z = data.z
         }
     })
-    console.log('this is the players array', players)
+       console.log('this is the players array', players)
         socket.broadcast.emit ('updatePlayers', players);
     });
 
@@ -105,7 +105,7 @@ socket.on('audio-blod-send',function(data){
   console.log('trying to emit the data')
   socket.emit('audio', data);
   socket.emit ('test', {});
-  console.log(data)
+  //console.log(data)
 });
 });
 
