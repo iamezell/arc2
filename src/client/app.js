@@ -107,12 +107,11 @@ var turnReady;
         // add id to player
         self.thePlayer.id = data.id;
         self.peer = new Peer(self.thePlayer.id, {host: '10.0.0.165', port:443, path:'/peerjs' });
+        // add yourself ?
+        // self.addPlayer(data);
+        //if there are other players add them
         self.initializePlayers (data);
         self.playerArray.push(self.thePlayer.id)
-        // self.peer.on('call', (call)=>{
-        //   call.answer(mediaStream)
-        // })
-
         self.audioContext = new AudioContext()
     navigator.mediaDevices.getUserMedia({audio: true, video: false})
     .then((stream)=>{
@@ -239,8 +238,8 @@ var turnReady;
     //   console.log('player moved', data)
     let otherPlayers = data.filter( (item) => item.id !== self.thePlayer.id )
     self.players.map((item,index,array) => {
-        console.log('this is the index', index)
-        console.log('this is the otherPlayers', otherPlayers)
+        // console.log('this is the index', index)
+        // console.log('this is the otherPlayers', otherPlayers)
         if (item.id === otherPlayers[index].id) {
             item.mesh.position.x = otherPlayers[index].x
             item.mesh.position.y = otherPlayers[index].y
@@ -511,6 +510,7 @@ var turnReady;
     // loop through all the users and creating in game objects to represent them
     console.log('initialized', data.players);
     console.log('initialized', this.thePlayer);
+    // add ourselves to scene
     this.otherPlayers = data.players.filter( (item) => item.id !== this.thePlayer.id )
     this.otherPlayers.forEach(function(obj) {
         that.addPlayers(obj)
@@ -523,11 +523,13 @@ var turnReady;
     player.id = data.id;
      let cube_geometry = new THREE.BoxGeometry(5,5,5);
      let cube_material = new THREE.MeshBasicMaterial({ color: 0x7777ff, wireframe: false})
-     this.mesh = new THREE.Mesh(cube_geometry, cube_material);
-     this.mesh.position.y = 3
-     this.scene.add(this.mesh);
-     this.players.push(player)
-    console.log('added mesh to scene', this.mesh)
+     let mesh = new THREE.Mesh(cube_geometry, cube_material);
+     mesh.position.y = 3
+      // add mesh to player
+    this.thePlayer.mesh = mesh;
+     this.scene.add(mesh);
+     this.players.push(this.thePlayer)
+    console.log('added mesh to scene', mesh)
  };
 
  addPlayers (data) {
@@ -616,6 +618,10 @@ var turnReady;
                 this.controls.getObject().position.y = 10;
                 this.canJump = true;
             }
+           //Do we need to see ourselves?
+           // this.thePlayer.mesh.position.x =  this.controls.getObject().position.x
+           // this.thePlayer.mesh.position.y =  this.controls.getObject().position.y
+           // this.thePlayer.mesh.position.z =  this.controls.getObject().position.z
         //   console.log('emitting the player positions')
 
           if(!this.last || now - this.last >= 10) {
