@@ -1,20 +1,28 @@
 const path = require('path')
 
 const config = {
+    mode : "development",
     entry: './src/client/app.js',
     output: {
         path: path.resolve(__dirname,'public/js'),
         filename: 'bundle.js'
     },
+    devtool: 'inline-source-map',
+    devServer: {
+     contentBase: path.resolve(__dirname,'public/js')
+    },
     module: {
         rules: [
             {
-                use: 'babel-loader',
-                test: /\.js$/,
-            },
-            {
-                use:['style-loader', 'css-loader'],
-                test: /\.css$/
+                test: /\.m?js$/,
+                exclude: /(node_modules|bower_components)/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                      presets: ['@babel/preset-env'],
+                      plugins: ['@babel/plugin-proposal-object-rest-spread']
+                    }
+                  }
             }
         ]
     }
