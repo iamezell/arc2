@@ -72,13 +72,13 @@ export default class App {
       //var mediaRecorder = new MediaRecorder(dest.stream);
 
       // Create a biquadfilter
-    //   var biquadFilter = this.audioContext.createBiquadFilter();
-    //   biquadFilter.type = "lowshelf";
-    //   biquadFilter.frequency.value = 1000;
-    //   biquadFilter.gain.value =2;
+        var biquadFilter = this.audioContext.createBiquadFilter();
+        biquadFilter.type = "lowshelf";
+        biquadFilter.frequency.value = 1000;
+        biquadFilter.gain.value =2;
 
-    //   realAudioInput.connect(biquadFilter)
-      // biquadFilter.connect(this.audioContext.destination)
+        realAudioInput.connect(biquadFilter)
+        biquadFilter.connect(this.audioContext.destination)
 
     //   this.audioContext.audioWorklet.addModule('BypassProcessor.js').then(() => {
     //     let bypassNode = new AudioWorkletNode(this.audioContext, 'bypass-processor');
