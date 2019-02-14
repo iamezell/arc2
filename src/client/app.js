@@ -136,7 +136,7 @@ var turnReady;
     socket.on('otherPlayerJoined', function (data) {
         console.log('other player joined', data)
         // self.initializePlayers (data);
-        self.addPlayer(data)
+        self.addPlayers(data)
         console.log('the new player id is', data.id)
         // connect to player
         let audioContext = new AudioContext()
