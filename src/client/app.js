@@ -2,7 +2,7 @@ import Main from './Main'
 import * as THREE from 'three'
 import Player from './worldobjects/Player'
 const Chance = require('chance')
-import Peer from 'peerjs';
+
 // import AbstractApplication from 'views/AbstractApplication'
 // import shaderVert from './shaders/custom.vert'
 // import shaderFrag from './shaders/custom.frag'
@@ -48,7 +48,7 @@ export default class App {
     this.chance = new Chance()
    
 
-    // this.peer = new Peer('ezell', {host: '10.0.0.165', port:443, path:'/peerjs' });
+    // this.peer = new Peer('ezell', {host: '10.0.0.89', port:443, path:'/peerjs' });
 
    
 
@@ -63,7 +63,7 @@ var turnReady;
   }
 
   init() {
-    let socket = io.connect('https://10.0.0.165/');
+    let socket = io.connect('https://10.0.0.89/');
     this.socket = socket;
     let self = this;
     let realAudioInput = {};
@@ -106,7 +106,7 @@ var turnReady;
         console.log('Connected.!!!!!', data);
         // add id to player
         self.thePlayer.id = data.id;
-        self.peer = new Peer(self.thePlayer.id, {host: '10.0.0.165', port:443, path:'/peerjs' });
+        self.peer = Peer(self.thePlayer.id, {host: '10.0.0.89', port:443, path:'/peerjs' });
         // add yourself ?
         // self.addPlayer(data);
         //if there are other players add them
@@ -375,6 +375,9 @@ var turnReady;
                                 // Ask the browser to lock the pointer
                                 element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
                                 element.requestPointerLock();
+                                self.audioContext.resume().then(() => {
+                                    console.log('Playback resumed successfully');
+                                  });
                             }, false );
                         } else {
                             instructions.innerHTML = 'Your browser doesn\'t seem to support Pointer Lock API';
