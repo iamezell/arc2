@@ -34,7 +34,7 @@ export default class App {
         console.log('Connected.!!!!!', data);
         // add id to player
         self.thePlayer.id = data.id;
-        self.peer = Peer(self.thePlayer.id, {host: '10.0.0.165', path:'/' });
+        self.peer = Peer(self.thePlayer.id, {host: '10.0.0.165',  port: 443, path:'/peerjs' });
         // add yourself ?
         // self.addPlayer(data);
         //if there are other players add them
