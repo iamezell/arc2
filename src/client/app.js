@@ -104,8 +104,7 @@ initializePlayers (data) {
   console.log('initialized', data.players);
   console.log('initialized', this.thePlayer);
   // add ourselves to scene
-  this.otherPlayers = data.players.filter( (item) => item.id !== this.thePlayer.id )
-  this.otherPlayers.forEach(function(obj) {
+  this.otherPlayers = data.players.filter( (item) => item.id !== this.thePlayer.id ).forEach(function(obj) {
       that.addPlayers(obj)
   });
  };
