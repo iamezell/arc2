@@ -110,12 +110,18 @@ initializePlayers (data) {
  };
 
  addPlayers (data) {
-    // add to player array
-    let player = new Player()
-    player.id = data.id;
-    this.players.push(player)
+  // add to player array
+  let player = new Player()
+  player.id = data.id;
+  let mesh = document.createElement('a-box');
+  player.mesh = mesh;
+  player.mesh.object3D.position.set(1, 1, -2 );
+  let scene = document.querySelector('a-scene');
+  scene.appendChild(player.mesh);
+  this.players.push(player);
 
-    console.log('added other player to scene')
+
+  console.log(this.players);
 };
 
     
