@@ -20,7 +20,7 @@ var ExpressPeerServer = require('peer').ExpressPeerServer;
  */
 
   const options = {
-      cert: fs.readFileSync('localhost.cert'),
+      cert: fs.readFileSync('localhost.crt'),
       key: fs.readFileSync('localhost.key')
   };
   peerOptions = {
