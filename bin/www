@@ -18,7 +18,7 @@ var server = {};
  */
 
   const options = {
-      cert: fs.readFileSync('localhost.cert'),
+      cert: fs.readFileSync('localhost.crt'),
       key: fs.readFileSync('localhost.key')
   };
   var port = normalizePort(process.env.PORT || '443');

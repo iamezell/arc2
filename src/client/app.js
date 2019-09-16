@@ -2,6 +2,8 @@ import Main from './Main'
 import * as THREE from 'three'
 import Player from './worldobjects/Player'
 const Chance = require('chance')
+import { WEBVR } from './Webvr'
+
 // import AbstractApplication from 'views/AbstractApplication'
 // import shaderVert from './shaders/custom.vert'
 // import shaderFrag from './shaders/custom.frag'
@@ -306,8 +308,10 @@ export default class App {
                 //
                 this.renderer = new THREE.WebGLRenderer();
                 this.renderer.setPixelRatio( window.devicePixelRatio );
-                this.renderer.setSize( window.innerWidth, window.innerHeight );
+                this.renderer.setSize( window.innerWidth - 100, window.innerHeight - 100 );
                 document.body.appendChild( this.renderer.domElement );
+                document.body.appendChild( WEBVR.createButton( this.renderer ) );
+                this.renderer.vr.enabled = true;
                 //
                 // window.addEventListener( 'resize', onWindowResize, false );
         this.animate()
