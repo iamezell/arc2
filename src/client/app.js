@@ -8,22 +8,60 @@ export default class App {
 
   init () {
     
-    var player = new WSAudioAPI.Player({
-      server: {
-          host: window.location.hostname, //websockets server addres. In this example - localhost
-          port: 5000 //websockets server port
-  }});
-  console.log(player)
+//     let player = new WSAudioAPI.Player({
+//       server: {
+//           host: window.location.hostname, //websockets server addres. In this example - localhost
+//           port: 80 //websockets server port
+//   }});
+
+//   let streamer = new WSAudioAPI.Streamer({
+//     server: {
+//         host: window.location.hostname, //websockets server addres. In this example - localhost
+//         port: 80 //websockets server port
+// }});
+
+//   let streamerStartBtn = document.getElementById("streamerStartBtn")
+//   let streamerStopBtn = document.getElementById("streamerStopBtn")
+
+//   streamerStartBtn.addEventListener("click", ()=>{
+//     streamer.start()
+//   }, this)
+
+//   streamerStopBtn.addEventListener("click", ()=>{
+//     streamer.stop()
+//   }, this)
+
+
   //   let soundController = {}
   //   soundController.recording = false
-  //   let exampleSocket = new WebSocket("wss://localhost", "protocolOne")
+
+  let makeStream = (socket) => {
+    navigator.getUserMedia({ audio: true }, function(stream) {
+      let stream = stream;
+      let audioInput = audioContext.createMediaStreamSource(stream);
+      let gainNode = audioContext.createGain();
+      let recorder = audioContext.createScriptProcessor(_this.config.codec.bufferSize, 1, 1);
+      recorder.onaudioprocess = function(e) {
+        var resampled = _this.sampler.resampler(e.inputBuffer.getChannelData(0));
+        var packets = _this.encoder.encode_float(resampled);
+        for (var i = 0; i < packets.length; i++) {
+          if (socket.readyState == 1) socket.send(packets[i]);
+        }
+      };
+      audioInput.connect(_this.gainNode);
+      gainNode.connect(_this.recorder);
+      recorder.connect(audioContext.destination);
+    }, (err)=>{console.log("error", err)});
+  }
+    let exampleSocket = new WebSocket("wss://localhost", "protocolOne")
 
   //   // audioWorkletContext.connect(context.destination)
   //   // for legacy browsers
-  //   exampleSocket.onopen = function (event) {
-  //     exampleSocket.send("Here's some text that the server is urgently awaiting!");
-  //     exampleSocket.close() 
-  //   };
+    exampleSocket.onopen = function (event) {
+      // exampleSocket.send("Here's some text that the server is urgently awaiting!");
+      makeStream( exampleSocket)
+      exampleSocket.close() 
+    };
   //   const AudioContext = window.AudioContext || window.webkitAudioContext
 
   //   // const audioContext = new AudioContext()

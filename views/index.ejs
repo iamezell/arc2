@@ -10,19 +10,10 @@
       <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
       <a-sky color="#ECECEC"></a-sky>
     </a-scene>
-    <script>
-      var streamer = new WSAudioAPI.Streamer({
-          server: {
-              host: window.location.hostname, //websockets server addres. In this example - localhost
-              port: 5000 //websockets server port
-      }});
-  </script>
-  <script async defer src="js/bundle.js"></script>
-  <button id="playerStartBtn">Start stream</button>
+  <button id="streamerStartBtn">Start stream</button>
+  <button id="streamerStopBtn">Stop stream</button>
+  <button id="playerStartBtn">Play stream</button>
   <button id="playerStopBtn">Stop stream</button>
- 
-<button onclick="player.start()">Play stream</button>
-<button onclick="player.stop()">Stop playing</button>
-
+  <script async defer src="js/bundle.js"></script>
   </body>
 </html>
