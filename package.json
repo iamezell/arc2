@@ -22,6 +22,7 @@
     "socket.io": "^2.2.0",
     "webpack": "^4.29.3",
     "websocket": "^1.0.30",
+    "worklet-loader": "^1.0.0",
     "ws-audio-api": "^0.1.5"
   },
   "devDependencies": {
